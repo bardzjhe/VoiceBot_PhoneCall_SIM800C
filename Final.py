@@ -2,6 +2,8 @@ import io
 import re
 import sys
 import time
+import wave
+import threading
 import serial
 import argparse
 import serial.tools.list_ports
@@ -87,33 +89,57 @@ def mp3_function(filename):
     mixer.music.stop()
 
 
-def inout():
-    CHUNK = 1024
-    WIDTH = 2
-    CHANNELS = 2
-    RATE = 44100
-    RECORD_SECONDS = 5
 
-    p = pyaudio.PyAudio()
+class AudiRecorder(): # Audio class based on pyAudio and Wave
 
-    stream = p.open(format=p.get_format_from_width(WIDTH),
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    output=True,
-                    input_device_index=1,
-                    frames_per_buffer=CHUNK)
+    # constructor
+    def __init__(self):
+        self.open = True
+        self.rate = 44100
+        self.frames_per_buffer = 1024
+        self.channels = 2
+        self.format = pyaudio.paInt16
+        self.audio_filename = "temp_audio.wav"
+        self.audio = pyaudio.PyAudio()
+        self.stream = self.audio.open(format=self.format,
+                                      channels=self.channels,
+                                      rate=self.rate,
+                                      input=True,
+                                      frames_per_buffer = self.frames_per_buffer)
+        self.audio_frames = []
+        # Audio starts being recorded
 
-    print("* recording")
+    def record(self):
 
-    while Flag:
-        data = stream.read(CHUNK)  # read audio stream
-        stream.write(data, CHUNK)  # play back audio stream
+        self.stream.start_stream()
+        while (self.open == True):
+            data = self.stream.read(self.frames_per_buffer)
+            self.audio_frames.append(data)
+            if self.open == False:
+                break
 
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
+    # Finishes the audio recording therefore the thread too
+    def stop(self):
 
+        if self.open == True:
+            self.open = False
+            self.stream.stop_stream()
+            self.stream.close()
+            self.audio.terminate()
+
+            waveFile = wave.open(self.audio_filename, 'wb')
+            waveFile.setnchannels(self.channels)
+            waveFile.setsampwidth(self.audio.get_sample_size(self.format))
+            waveFile.setframerate(self.rate)
+            waveFile.writeframes(b''.join(self.audio_frames))
+            waveFile.close()
+
+        pass
+
+    # Launches the audio recording function using a thread
+    def start(self):
+        audio_thread = threading.Thread(target=self.record)
+        audio_thread.start()
 
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
@@ -197,10 +223,13 @@ def main():
 
     # variable = int(input("enter 1 for mic function, enter 2 for mp3 functon:\n"))
     executor.submit(calling, 94030591)
-    inout()
-    if Connected:
-        mp3_function("01.mp3")
-    # inout()
+
+    time.sleep(5)
+    record = AudiRecorder()
+    record.start()
+
+    
+
     '''
     if variable == 1:
         mic_function()
