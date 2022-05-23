@@ -1,4 +1,5 @@
 import io
+import os
 import re
 import sys
 import time
@@ -15,13 +16,13 @@ import sounddevice as sd
 import numpy as np
 import scipy.io.wavfile as wav
 
-
 import sounddevice as sd
 from scipy.io.wavfile import write
 import wavio as wv
 
 Flag = True
 Connected = False
+
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -30,6 +31,8 @@ def int_or_str(text):
     except ValueError:
         return text
 
+
+# Exchange audio
 def mic_function():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
@@ -80,17 +83,24 @@ def mic_function():
     except Exception as e:
         parser.exit(type(e).__name__ + ': ' + str(e))
 
-def mp3_function(filename):
-    mixer.init()
-    mixer.music.load(filename)
-    #print("* recording")
-    mixer.music.play()
-    time.sleep(30)
-    mixer.music.stop()
+
+class PlayMP3():
+
+    # Constructor to assign the fileName, which is the mp3 file to play
+    def __init__(self, name):
+        self.filename = name
+
+    def play(self):
+        mixer.init()
+        mixer.music.load(self.filename)
+        # print("* recording")
+        mixer.music.play()
+        while mixer.music.get_busy():  # wait for music to finish playing
+            time.sleep(1)
+        mixer.music.stop()
 
 
-
-class AudiRecorder(): # Audio class based on pyAudio and Wave
+class AudiRecorder():  # Audio class based on pyAudio and Wave
 
     # constructor
     def __init__(self):
@@ -99,13 +109,13 @@ class AudiRecorder(): # Audio class based on pyAudio and Wave
         self.frames_per_buffer = 1024
         self.channels = 2
         self.format = pyaudio.paInt16
-        self.audio_filename = "temp_audio.wav"
+        self.audio_filename = "temp_audio.wav"  # Recording file name
         self.audio = pyaudio.PyAudio()
         self.stream = self.audio.open(format=self.format,
                                       channels=self.channels,
                                       rate=self.rate,
                                       input=True,
-                                      frames_per_buffer = self.frames_per_buffer)
+                                      frames_per_buffer=self.frames_per_buffer)
         self.audio_frames = []
         # Audio starts being recorded
 
@@ -141,6 +151,7 @@ class AudiRecorder(): # Audio class based on pyAudio and Wave
         audio_thread = threading.Thread(target=self.record)
         audio_thread.start()
 
+
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
     print("A works")
@@ -150,7 +161,7 @@ def calling(phonenum):
 
     else:
         print('D')
-        s = serial.Serial(port_list[0].device, timeout=0)
+        s = serial.Serial(port_list[0].device, timeout=1)
         print('E')
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
         print("B works")
@@ -166,13 +177,14 @@ def calling(phonenum):
         '''
         sio.flush()
         Connected = True
+        print("G works")
         while 1:
+            print(sio.readlines())
             x = ''.join(sio.readlines())
+            # print(x)
+            if x == '\nNO CARRIER\n':  # Dial failed
+                print("Taiwan Can Help")
 
-            if (x == '\nNO CARRIER\n' |
-                    x == '\nNO ANSWER\n' |
-                    x == '\nERROR\n'):  # Dial failed
-                Flag = False
                 break
 
 
@@ -218,18 +230,39 @@ def textmessage(rawtext, rawphonenum):
         print(''.join(sio.readlines()))
         s.close()
 
+
+# Required and wanted processing of final files
+def file_manager(filename):
+    local_path = os.getcwd()
+
+    if os.path.exists(str(local_path) + "/temp_audio.wav"):
+        os.remove(str(local_path) + "/temp_audio.wav")
+
+
 def main():
-    executor = ThreadPoolExecutor(max_workers=16)
-
+    # Old version code is defective, through which it cannot print out the command in serial communication
+    # executor = ThreadPoolExecutor(max_workers=16)
+    # executor.submit(calling, 94030591)
     # variable = int(input("enter 1 for mic function, enter 2 for mp3 functon:\n"))
-    executor.submit(calling, 94030591)
 
-    time.sleep(5)
-    record = AudiRecorder()
-    record.start()
+    calling(94030591)
 
-    
 
+    # Start audio recording
+
+    audio_thread = AudiRecorder()
+    pl = PlayMP3('02.mp3')
+    pl.play()  # play MP3
+    audio_thread.start()
+    time.sleep(10)
+    # Stop audio recording
+    audio_thread.stop()
+
+    # Makes sure the threads have finished
+    while threading.active_count() > 1:
+        time.sleep(1)
+
+    print("Done")
     '''
     if variable == 1:
         mic_function()
@@ -238,6 +271,7 @@ def main():
     else:
         sys.exit(0)
     '''
+
 
 if __name__ == "__main__":
     main()
