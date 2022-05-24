@@ -33,55 +33,55 @@ def int_or_str(text):
 
 
 # Exchange audio
-def mic_function():
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument(
-        '-l', '--list-devices', action='store_true',
-        help='show list of audio devices and exit')
-    args, remaining = parser.parse_known_args()
-    if args.list_devices:
-        print(sd.query_devices())
-        parser.exit(0)
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        parents=[parser])
-    parser.add_argument(
-        '-i', '--input-device', type=int_or_str,
-        help='input device (numeric ID or substring)')
-    parser.add_argument(
-        '-o', '--output-device', type=int_or_str,
-        help='output device (numeric ID or substring)')
-    parser.add_argument(
-        '-c', '--channels', type=int, default=2,
-        help='number of channels')
-    parser.add_argument('--dtype', help='audio data type')
-    parser.add_argument('--samplerate', type=float, help='sampling rate')
-    parser.add_argument('--blocksize', type=int, help='block size')
-    parser.add_argument('--latency', type=float, help='latency in seconds')
-    args = parser.parse_args(remaining)
-
-    def callback(indata, outdata, frames, time, status):
-        if status:
-            print(status)
-        outdata[:] = indata
-
-    try:
-        with sd.Stream(device=(args.input_device, args.output_device),
-                       samplerate=args.samplerate, blocksize=args.blocksize,
-                       dtype=args.dtype, latency=args.latency,
-                       channels=args.channels, callback=callback):
-            print('#' * 80)
-            print("* recording")
-            print('press Return to quit')
-            print('#' * 80)
-            input()
-
-    except KeyboardInterrupt:
-        parser.exit('')
-
-    except Exception as e:
-        parser.exit(type(e).__name__ + ': ' + str(e))
+# def mic_function():
+#     parser = argparse.ArgumentParser(add_help=False)
+#     parser.add_argument(
+#         '-l', '--list-devices', action='store_true',
+#         help='show list of audio devices and exit')
+#     args, remaining = parser.parse_known_args()
+#     if args.list_devices:
+#         print(sd.query_devices())
+#         parser.exit(0)
+#     parser = argparse.ArgumentParser(
+#         description=__doc__,
+#         formatter_class=argparse.RawDescriptionHelpFormatter,
+#         parents=[parser])
+#     parser.add_argument(
+#         '-i', '--input-device', type=int_or_str,
+#         help='input device (numeric ID or substring)')
+#     parser.add_argument(
+#         '-o', '--output-device', type=int_or_str,
+#         help='output device (numeric ID or substring)')
+#     parser.add_argument(
+#         '-c', '--channels', type=int, default=2,
+#         help='number of channels')
+#     parser.add_argument('--dtype', help='audio data type')
+#     parser.add_argument('--samplerate', type=float, help='sampling rate')
+#     parser.add_argument('--blocksize', type=int, help='block size')
+#     parser.add_argument('--latency', type=float, help='latency in seconds')
+#     args = parser.parse_args(remaining)
+#
+#     def callback(indata, outdata, frames, time, status):
+#         if status:
+#             print(status)
+#         outdata[:] = indata
+#
+#     try:
+#         with sd.Stream(device=(args.input_device, args.output_device),
+#                        samplerate=args.samplerate, blocksize=args.blocksize,
+#                        dtype=args.dtype, latency=args.latency,
+#                        channels=args.channels, callback=callback):
+#             print('#' * 80)
+#             print("* recording")
+#             print('press Return to quit')
+#             print('#' * 80)
+#             input()
+#
+#     except KeyboardInterrupt:
+#         parser.exit('')
+#
+#     except Exception as e:
+#         parser.exit(type(e).__name__ + ': ' + str(e))
 
 
 class PlayMP3():
@@ -95,6 +95,7 @@ class PlayMP3():
         mixer.music.load(self.filename)
         # print("* recording")
         mixer.music.play()
+        print("The mp3 should be played")
         while mixer.music.get_busy():  # wait for music to finish playing
             time.sleep(1)
         mixer.music.stop()
@@ -149,6 +150,7 @@ class AudiRecorder():  # Audio class based on pyAudio and Wave
     # Launches the audio recording function using a thread
     def start(self):
         audio_thread = threading.Thread(target=self.record)
+        print("The recording should start")
         audio_thread.start()
 
 
@@ -156,7 +158,7 @@ def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
     print("A works")
     print(len(port_list))
-    if (len(port_list) == 0):
+    if len(port_list) == 0:
         print("nothing to be used")
 
     else:
@@ -176,7 +178,7 @@ def calling(phonenum):
         ATD電話號碼;:用於撥打電話號碼
         '''
         sio.flush()
-        Connected = True
+
         print("G works")
         while 1:
             print(sio.readlines())
@@ -240,37 +242,28 @@ def file_manager(filename):
 
 
 def main():
-    # Old version code is defective, through which it cannot print out the command in serial communication
-    # executor = ThreadPoolExecutor(max_workers=16)
+
+    executor = ThreadPoolExecutor(max_workers=16)
+
+    # thread for phone call
     # executor.submit(calling, 94030591)
-    # variable = int(input("enter 1 for mic function, enter 2 for mp3 functon:\n"))
-
-    calling(94030591)
-
 
     # Start audio recording
-
     audio_thread = AudiRecorder()
-    pl = PlayMP3('02.mp3')
-    pl.play()  # play MP3
-    audio_thread.start()
-    time.sleep(10)
-    # Stop audio recording
-    audio_thread.stop()
+    executor.submit(audio_thread.start(), )
 
-    # Makes sure the threads have finished
-    while threading.active_count() > 1:
-        time.sleep(1)
+    # thread for playing the music
+    pl = PlayMP3('02.mp3')
+    executor.submit(pl.play())
+
+    # Sleep for 10 seconds
+    # time.sleep(10)
+
+    # Stop audio recording
+    executor.submit(audio_thread.stop)
 
     print("Done")
-    '''
-    if variable == 1:
-        mic_function()
-    elif variable == 2:
-        mp3_function("01.mp3")
-    else:
-        sys.exit(0)
-    '''
+    exit()
 
 
 if __name__ == "__main__":
