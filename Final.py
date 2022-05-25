@@ -1,98 +1,43 @@
 import io
 import os
-import re
-import sys
+import queue
 import time
 import wave
 import threading
 import serial
-import argparse
 import serial.tools.list_ports
 import pyaudio
 from pygame import mixer
-from multiprocessing import Process
 from concurrent.futures import ThreadPoolExecutor
-import sounddevice as sd
-import numpy as np
-import scipy.io.wavfile as wav
-
-import sounddevice as sd
-from scipy.io.wavfile import write
-import wavio as wv
 
 Flag = True
 Connected = False
 
+# Audio recording parameters
+RATE = 16000
+CHUNK = int(RATE/10) # 100ms
 
-def int_or_str(text):
-    """Helper function for argument parsing."""
-    try:
-        return int(text)
-    except ValueError:
-        return text
+class Text2Speech(object):
+    '''Opens a recording stream as
+    a generator yielding the audio'''
+    def __init__(self, rate, chunk):
+        self._rate = rate
+        self_chunk = chunk
 
-
-# Exchange audio
-# def mic_function():
-#     parser = argparse.ArgumentParser(add_help=False)
-#     parser.add_argument(
-#         '-l', '--list-devices', action='store_true',
-#         help='show list of audio devices and exit')
-#     args, remaining = parser.parse_known_args()
-#     if args.list_devices:
-#         print(sd.query_devices())
-#         parser.exit(0)
-#     parser = argparse.ArgumentParser(
-#         description=__doc__,
-#         formatter_class=argparse.RawDescriptionHelpFormatter,
-#         parents=[parser])
-#     parser.add_argument(
-#         '-i', '--input-device', type=int_or_str,
-#         help='input device (numeric ID or substring)')
-#     parser.add_argument(
-#         '-o', '--output-device', type=int_or_str,
-#         help='output device (numeric ID or substring)')
-#     parser.add_argument(
-#         '-c', '--channels', type=int, default=2,
-#         help='number of channels')
-#     parser.add_argument('--dtype', help='audio data type')
-#     parser.add_argument('--samplerate', type=float, help='sampling rate')
-#     parser.add_argument('--blocksize', type=int, help='block size')
-#     parser.add_argument('--latency', type=float, help='latency in seconds')
-#     args = parser.parse_args(remaining)
-#
-#     def callback(indata, outdata, frames, time, status):
-#         if status:
-#             print(status)
-#         outdata[:] = indata
-#
-#     try:
-#         with sd.Stream(device=(args.input_device, args.output_device),
-#                        samplerate=args.samplerate, blocksize=args.blocksize,
-#                        dtype=args.dtype, latency=args.latency,
-#                        channels=args.channels, callback=callback):
-#             print('#' * 80)
-#             print("* recording")
-#             print('press Return to quit')
-#             print('#' * 80)
-#             input()
-#
-#     except KeyboardInterrupt:
-#         parser.exit('')
-#
-#     except Exception as e:
-#         parser.exit(type(e).__name__ + ': ' + str(e))
+        # Create a thread-safe buffer of audio data
+        self_buff = queue.Queue()
+        self.closed = True
 
 
 class PlayMP3():
 
     # Constructor to assign the fileName, which is the mp3 file to play
     def __init__(self, name):
-        self.filename = name
+        self._filename = name
 
     def play(self):
         mixer.init()
-        mixer.music.load(self.filename)
+        mixer.music.load(self._filename)
         # print("* recording")
         mixer.music.play()
         print("The mp3 should be played")
@@ -144,7 +89,6 @@ class AudiRecorder():  # Audio class based on pyAudio and Wave
             waveFile.setframerate(self.rate)
             waveFile.writeframes(b''.join(self.audio_frames))
             waveFile.close()
-
         pass
 
     # Launches the audio recording function using a thread
@@ -246,14 +190,14 @@ def main():
     executor = ThreadPoolExecutor(max_workers=16)
 
     # thread for phone call
-    # executor.submit(calling, 94030591)
+    executor.submit(calling, 94030591)
 
     # Start audio recording
     audio_thread = AudiRecorder()
     executor.submit(audio_thread.start(), )
 
     # thread for playing the music
-    pl = PlayMP3('02.mp3')
+    pl = PlayMP3('01.mp3')
     executor.submit(pl.play())
 
     # Sleep for 10 seconds
