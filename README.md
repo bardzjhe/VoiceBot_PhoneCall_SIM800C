@@ -1,28 +1,29 @@
 # PhoneCall_Voicebots_SIM800C
 
-
 The program implements the Voicebots with Phone Call using ATK-SIM800C GSM/GPRS Module. Natural TTS will be integrated to facilitate advanced features. This project covers lots of scopes, like serial programming, multithreading, audio processing, and NLP-related features supported by Google Could Platform (GCP).
 
 ## Getting started
 In order to use Python Client for Cloud Text-to-Speech API, you ought to go through the following steps:
 
-1. `Select or create a Cloud Platform project.`
-2. `Enable billing for your project.`
-3. `Enable the Cloud Text-to-Speech API.`
-4. `Setup Authentication.`
+1. [Select or create a Cloud Platform project.](https://console.cloud.google.com/project)
+2. [Enable billing for your project.](https://cloud.google.com/billing/docs/how-to/)
+3. [Enable the Cloud Text-to-Speech API.](https://cloud.google.com/texttospeech)
+4. [Setup Authentication.](https://googleapis.dev/python/google-api-core/latest/auth.html)
 
-### Setting up a Python development environment and GCP configuration
-
-Given multiple APIs would be used, it is recommended to have a pre-project environment when developing locally with Python. As for GCP, Please refer to [Google Cloud Guide](https://cloud.google.com/python/docs/setup#windows) to set up virtual environment. In addition, you may refer to [Text-to-Speech client libraries Guide](<https://cloud.google.com/text-to-speech/docs/libraries#client-libraries-install-python>) to further set up authentication and the environment.
+After that, you can do
 
 <pre><code> from google.cloud import texttospeech
 </code></pre>
 
-## Multithreading with thread pool
+### Installing
 
-More details will be available later.
+Given multiple APIs may be used, it is recommended to have a pre-project environment when developing locally with Python. Install this library in a [virtualenv](https://virtualenv.pypa.io/en/latest/) using pip. virtualenv is a tool to create isolated Python environments. The basic problem it addresses is one of dependencies and versions, and indirectly permissions.
 
-## NLP-related features
+With virtualenv, it's possible to install this library without needing system install permissions, and without clashing with the installed system dependencies.
+
+For more installing details, please refer to [this](https://github.com/googleapis/python-texttospeech).
+
+### NLP-related features
 
 Apart from calling function, it provides basic MP3 playing function, and audio recording. As for advanced NLP-related features, which include
 
