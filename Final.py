@@ -99,6 +99,7 @@ class AudiRecorder():  # Audio class based on pyAudio and Wave
 
 
 def calling(phonenum):
+    executor = ThreadPoolExecutor(max_workers=16)
     port_list = list(serial.tools.list_ports.comports())
     print("A works")
     print(len(port_list))
@@ -107,7 +108,10 @@ def calling(phonenum):
 
     else:
         print('D')
-        s = serial.Serial(port_list[0].device, timeout=1)
+# print all available port name
+#        for i in port_list:
+#            print(i)
+        s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
         print('E')
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
         print("B works")
@@ -121,17 +125,32 @@ def calling(phonenum):
         
         ATD電話號碼;:用於撥打電話號碼
         '''
-        sio.flush()
 
+        sio.flush()
         print("G works")
         while 1:
-            print(sio.readlines())
-            x = ''.join(sio.readlines())
-            # print(x)
-            if x == '\nNO CARRIER\n':  # Dial failed
-                print("Taiwan Can Help")
+            #            print(sio.readlines())
+            x = "".join(sio.readlines())
+            print(x)
+            if x.find('+COLP: \"') != -1:
+                print("dialed")
+                # Start audio recording
+                audio_thread = AudiRecorder()
+                executor.submit(audio_thread.start(), )
+                pl = PlayMP3('01.mp3')
+                executor.submit(pl.play())
 
+                # Stop audio recording
+                executor.submit(audio_thread.stop)
+            if x.find('NO CARRIER') != -1:
+                print("Taiwan Can Help")
                 break
+
+#            if x == '\nNO CARRIER\n':  # Dial failed
+
+
+
+
 
 
 def str2unicdoe(rawstr):
@@ -187,24 +206,22 @@ def file_manager(filename):
 
 def main():
 
-    executor = ThreadPoolExecutor(max_workers=16)
+    # executor = ThreadPoolExecutor(max_workers=16)
 
     # thread for phone call
-    executor.submit(calling, 94030591)
-
+    # executor.submit(calling, 56117107)
+    calling(56117107)
     # Start audio recording
-    audio_thread = AudiRecorder()
-    executor.submit(audio_thread.start(), )
+#    audio_thread = AudiRecorder()
+#    executor.submit(audio_thread.start(), )
 
     # thread for playing the music
-    pl = PlayMP3('01.mp3')
-    executor.submit(pl.play())
 
     # Sleep for 10 seconds
     # time.sleep(10)
 
-    # Stop audio recording
-    executor.submit(audio_thread.stop)
+        # Stop audio recording
+#        executor.submit(audio_thread.stop)
 
     print("Done")
     exit()
