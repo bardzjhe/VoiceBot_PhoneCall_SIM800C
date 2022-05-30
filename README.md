@@ -1,6 +1,6 @@
 # PhoneCall_Voicebots_SIM800C
 
-The program implements the Voicebots with Phone Call using ATK-SIM800C GSM/GPRS Module. Natural TTS will be integrated to facilitate advanced features. This project covers lots of scopes, like serial programming, multithreading, audio processing, and NLP-related features supported by Google Could Platform (GCP).
+The program implements the Voicebots with Phone Call using ATK-SIM800C GSM/GPRS Module. Natural TTS will be integrated to facilitate advanced features. This project covers lots of scopes, like serial programming, multithreading, audio processing, and NLP-related features supported by Google Cloud Platform (GCP).
 
 ## Getting started
 In order to use Python Client for Cloud Text-to-Speech API, you ought to go through the following steps:
@@ -17,7 +17,7 @@ After that, you can do
 
 ### Installing
 
-Given multiple APIs may be used, it is recommended to have a pre-project environment when developing locally with Python. Install this library in a [virtualenv](https://virtualenv.pypa.io/en/latest/) using pip. virtualenv is a tool to create isolated Python environments. The basic problem it addresses is one of dependencies and versions, and indirectly permissions.
+Given multiple APIs may be used, it is recommended to have a pre-project environment when developing locally with Python. Install this library in a [virtualenv](https://virtualenv.pypa.io/en/latest/) using pip, if you haven't done it before. virtualenv is a tool to create isolated Python environments. The basic problem it addresses is one of dependencies and versions, and indirectly permissions.
 
 With virtualenv, it's possible to install this library without needing system install permissions, and without clashing with the installed system dependencies.
 
@@ -29,7 +29,7 @@ Apart from calling function, it provides basic MP3 playing function, and audio r
 
 > 1. Convert a text file to mp3/wav format utilizing Google Cloud API, and this file would be played later.
 > 2. Convert the audio recording file in wav to text file.
-> 3. Languages should preferably include English, Cantonese and Mandrian. 
+> 3. Languages should preferably include English, Cantonese and Mandarin. 
 
 Those are achieved with the help of [Google Texttospeech API](https://cloud.google.com/text-to-speech). For 
 
@@ -38,3 +38,13 @@ Those are achieved with the help of [Google Texttospeech API](https://cloud.goog
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
+## Reference
+[google-cloud-speech](https://pypi.org/project/google-cloud-speech/)
+
+[google.oauth2.service_account module](https://google-auth.readthedocs.io/en/master/reference/google.oauth2.service_account.html)
+
+[Introduction to JWT](https://baobao555.tech/archives/40) (in Simplified Chinese)
+
+[YouTube Video](https://www.youtube.com/watch?v=ZXnPMzmrmIY)
+
+As for the testing issue of testing ATK-SIM800C GSM/GPRS Module, please use XCOM V2.0 and, if necessary, RTFM :)
