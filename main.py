@@ -128,9 +128,14 @@ def calling(phonenum):
     else:
         print('D')
 # print all available port name
-#        for i in port_list:
-#            print(i)
-        s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
+#         for i in port_list:
+#             print(i)
+
+    # find the correct port for data transmission
+        for i in port_list:
+            if str(i).find('CH340') != -1:
+                s = serial.Serial(i.device, 115200, timeout=0.5)
+        #s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
         print('E')
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
         print("B works")
@@ -158,15 +163,16 @@ def calling(phonenum):
                 executor.submit(audio_thread.start(), )
 
                 # Text to speech
-                text = "What's the matter with you. I'm gonna fly to LA next month. Do you think I have to go if I haven been to Hong Kong before, it is rediculous!"
+                text = "What's the matter with you. I'm gonna fly to LA next month. Do you think I have to go if I haven been to Hong Kong before, it is ridiculous!"
                 text2speech(text);
                 pl = PlayMP3('audio file1.mp3')
                 executor.submit(pl.play())
 
-                # Stop audio recording
-                executor.submit(audio_thread.stop)
+
             if x.find('NO CARRIER') != -1:
                 print("Ring off")
+                # Stop audio recording after the end of the call
+                executor.submit(audio_thread.stop)
                 break
 
 #           if x == '\nNO CARRIER\n':  # Dial failed
