@@ -47,4 +47,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [YouTube Video](https://www.youtube.com/watch?v=ZXnPMzmrmIY)
 
+[YouTube Speect2Text](https://www.youtube.com/watch?v=lKra6E_tp5U&list=PL3JVwFmb_BnQlc47zGPQFzrKeyXiolAoS)
+
 As for the issue of testing ATK-SIM800C GSM/GPRS Module, please use XCOM V2.0 and, if necessary, RTFM :satisfied:

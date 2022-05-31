@@ -14,6 +14,7 @@ import serial.tools.list_ports
 from pygame import mixer
 from concurrent.futures import ThreadPoolExecutor
 from google.cloud import texttospeech
+from google.cloud import speech
 
 from six.moves import queue
 
@@ -23,6 +24,7 @@ CHUNK = int(RATE/10) # 100ms
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'demoServiceAccount.json'
 client = texttospeech.TextToSpeechClient()
+speech_client = speech.SpeechClient()
 
 def text2speech(text):
 
@@ -47,6 +49,29 @@ def text2speech(text):
 
     with open('audio file1.mp3', 'wb') as output:
         output.write(response.audio_content)
+
+def speech2text():
+    ## Step 1. Loadd the media files (Transcribe media files)
+    media_file_name_wav = 'temp_audio.wav'
+    with open(media_file_name_wav, 'rb') as f2:
+        byte_data_wav = f2.read()
+    audio_wav = speech.RecognitionAudio(content=byte_data_wav)
+
+    ## Step 2. Configure Media Files Output
+    config_wav = speech.RecognitionConfig(
+        sample_rate_hertz=44100,
+        enable_automatic_punctuation=True,
+        language_code='en_us',
+        use_enhanced=True,
+        model = 'phone_call',
+        audio_channel_count=2
+    )
+    ## Step 3. Transcribing the Recognition objects
+    response_standard_wav = speech_client.recognize(
+        config=config_wav,
+        audio=audio_wav
+    )
+    print (response_standard_wav)
 
 class PlayMP3():
 
@@ -233,7 +258,7 @@ def main():
 
     calling(56117107)
 
-
+    speech2text()
     print("Done")
     exit()
 
