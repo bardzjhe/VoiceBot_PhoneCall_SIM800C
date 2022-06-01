@@ -22,10 +22,9 @@ from six.moves import queue
 RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'demoServiceAccount.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ServiceAccount.json'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
-
 
 def text2speech(text):
 
@@ -69,6 +68,7 @@ def speech2text():
         alternative_language_codes=[secondary_language1, secondary_language2],
         audio_channel_count=2
     )
+      
     ## Step 3. Transcribing the Recognition objects
     response_standard_wav = speech_client.recognize(
         config=config_wav,
@@ -148,13 +148,14 @@ class AudiRecorder():  # Audio class based on pyAudio and Wave
 def calling(phonenum):
     executor = ThreadPoolExecutor(max_workers=16)
     port_list = list(serial.tools.list_ports.comports())
-    print("A works")
-    print(len(port_list))
-    if len(port_list) == 0:
-        print("nothing to be used")
 
+    print("Debug info\nA works")
+    print("The port number is: " + str(len(port_list)))
+    if len(port_list) == 0:
+        print("\nno port can be used")
+        exit(0)
     else:
-        print('D')
+        print('\nB works')
 # print all available port name
 #         for i in port_list:
 #             print(i)
@@ -162,11 +163,12 @@ def calling(phonenum):
     # find the correct port for data transmission
         for i in port_list:
             if str(i).find('CH340') != -1:
-                s = serial.Serial(i.device, 115200, timeout=0.5)
+                s = serial.Serial(i.device, 115200, timeout=0)
         #s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
-        print('E')
+        print('\nC works')
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
-        print("B works")
+
+        print("\nD works")
         sio.write(f'ATE1\nAT+COLP=1\nATD{str(phonenum)};\n')
         ''' 
         ATE1: 用於設置開啓回顯模式，檢測Module與串口是否連通，能否接收AT命令
@@ -179,87 +181,44 @@ def calling(phonenum):
         '''
 
         sio.flush()
-        print("G works")
+        print("\nE works")
+        print("Calling....")
         while 1:
             # print(sio.readlines()) it leads to a big problem
             x = "".join(sio.readlines())
-            print(x)
+
+            # Detect status 
+            # print(x)
+
+            # Dailed
             if x.find('+COLP: \"') != -1:
-                print("dialed")
+                print("\ndialed")
+
                 # Start audio recording
                 audio_thread = AudiRecorder()
                 executor.submit(audio_thread.start(), )
 
                 # Text to speech
-                text = "What's the matter with you. I'm gonna fly to LA next month. Do you think I have to go if I haven been to Hong Kong before, it is ridiculous!"
+                text = "Hello. This is Jack. Long Time No See. How is everything going these days. This calling is from Google Cloud Platform using Artificial Intelligence. I wanna ask if Polyu has any room for improvement, please reply and I will record your audio. When you finish your comment, please ring off directly. "
+
                 text2speech(text);
                 pl = PlayMP3('audio file1.mp3')
                 executor.submit(pl.play())
 
 
             if x.find('NO CARRIER') != -1:
-                print("Ring off")
+                print("\nRing off")
                 # Stop audio recording after the end of the call
                 executor.submit(audio_thread.stop)
                 break
 
-#           if x == '\nNO CARRIER\n':  # Dial failed
-
-
-def str2unicdoe(rawstr):
-    result = ''
-    for c in rawstr:
-        _hex = hex(ord(c))
-        if len(_hex) == 4:
-            _hex = _hex.replace('0x', '00')
-        else:
-            _hex = _hex.replace('0x', '')
-        result += _hex.upper()
-    return result
-
-
-def textmessage(rawtext, rawphonenum):
-    send_test = str2unicdoe(rawtext)
-    phonenum = str2unicdoe(rawphonenum)
-    port_list = list(serial.tools.list_ports.comports())
-
-    if (len(port_list) == 0):
-        print("nothing to be used")
-
-    else:
-        s = serial.Serial(port_list[0].device, timeout=1)
-        sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
-        sio.write(f'AT+CMGF=1\nAT+CSMP=17, 167, 2, 25\nAT+CSCS="UCS2"\nAT+CMGS="{phonenum}"\n')
-
-        '''
-        AT+CMGF=1:設置爲文本内容
-        AT+CSMP=17, 167, 2, 25:設置文本參數
-        AT+CSCS="UCS2":設置爲16位通用8直接倍數編碼字符集  
-        '''
-
-        sio.flush()
-        print(''.join(sio.readlines()))
-        time.sleep(1)
-        sio.write(send_test + '\n')
-        sio.flush()
-        print(''.join(sio.readlines()))
-        s.write(b'\x1a')
-        sio.flush()
-        print(''.join(sio.readlines()))
-        s.close()
-
-
-# Required and wanted processing of final files
-def file_manager(filename):
-    local_path = os.getcwd()
-
-    if os.path.exists(str(local_path) + "/temp_audio.wav"):
-        os.remove(str(local_path) + "/temp_audio.wav")
-
+            if (x.find('BUSY') != -1) | (x.find('ERROR') != -1) | (x.find('NO ANSWER') != -1): 
+                print("\nHe/She hangs up")
+                break
 
 def main():
 
-    calling(56117107)
+    calling()
 
     speech2text()
     print("Done")
