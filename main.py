@@ -26,6 +26,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'demoServiceAccount.json'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
+
 def text2speech(text):
 
     synthesis_input = texttospeech.SynthesisInput(text=text)
@@ -52,6 +53,9 @@ def text2speech(text):
 
 def speech2text():
     ## Step 1. Loadd the media files (Transcribe media files)
+    primary_language = "yue-Hant-HK"  # a BCP-47 language tag
+    secondary_language1 = "en-US"
+    secondary_language2 = "zh"
     media_file_name_wav = 'temp_audio.wav'
     with open(media_file_name_wav, 'rb') as f2:
         byte_data_wav = f2.read()
@@ -62,8 +66,7 @@ def speech2text():
         sample_rate_hertz=44100,
         enable_automatic_punctuation=True,
         language_code='en_us',
-        use_enhanced=True,
-        model = 'phone_call',
+        alternative_language_codes=[secondary_language1, secondary_language2],
         audio_channel_count=2
     )
     ## Step 3. Transcribing the Recognition objects
