@@ -21,8 +21,10 @@ from six.moves import queue
 RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
-
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ServiceAccount.json' # plz modify the name if needed
+# Text as global variable
+text = "Hello. This is Jack. Long Time No See. How is everything going these days.  I wanna ask do you have any comments on our service? please reply and I will record your audio. When you finish your comment, please ring off directly. "
+executor = ThreadPoolExecutor(max_workers=16)
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
@@ -95,7 +97,7 @@ class MicrophoneStream(object):
             yield b"".join(data)
 
 
-def listen_print_save_loop(responses):
+def listen_print_save_loop(responses, stream):
     """Iterates through server responses, then prints and saves them.
 
     The responses passed is a generator that will block until a response
@@ -130,6 +132,11 @@ def listen_print_save_loop(responses):
         #
         # If the previous result was longer than this one, we need to print
         # some extra spaces to overwrite the previous result
+        stream.closed = True  # off mic
+
+        executor.submit(playAudioByText, transcript)
+
+
         overwrite_chars = " " * (num_chars_printed - len(transcript))
 
         if not result.is_final:
@@ -166,20 +173,21 @@ def speech2text():
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=True
+        config=config, interim_results=False
     )
 
-    with MicrophoneStream(RATE, CHUNK) as stream:
-        audio_generator = stream.generator()
-        requests = (
-            speech.StreamingRecognizeRequest(audio_content=content)
-            for content in audio_generator
-        )
+    while True:
+        with MicrophoneStream(RATE, CHUNK) as stream:
+            audio_generator = stream.generator()
+            requests = (
+                speech.StreamingRecognizeRequest(audio_content=content)
+                for content in audio_generator
+            )
 
-        responses = client.streaming_recognize(streaming_config, requests)
+            responses = client.streaming_recognize(streaming_config, requests)
 
-        # Now, put the transcription responses to use.
-        listen_print_save_loop(responses)
+            # Now, put the transcription responses to use.
+            listen_print_save_loop(responses, stream)
 
 
 def text2speech(text):
@@ -314,9 +322,17 @@ def playmusic(filename):
 #         print("The recording should start")
 #         audio_thread.start()
 
+def playAudioByText(transcript):
+    # Text to speech
+    # text = "Hello. This is Jack. Long Time No See. How is everything going these days. This calling is from Google Cloud Platform using Artificial Intelligence. I wanna ask if Polyu has any room for improvement, please reply and I will record your audio. When you finish your comment, please ring off directly. "
+    text2speech(transcript)
+
+    # Play the audio file to let the user hear the sound
+    pl = PlayMP3('audio file1.mp3')
+    pl.play()
+
 
 def calling(phonenum):
-    executor = ThreadPoolExecutor(max_workers=16)
     port_list = list(serial.tools.list_ports.comports())
 
     print("Debug info\nA works")
@@ -332,7 +348,7 @@ def calling(phonenum):
 
     # find the correct port for data transmission
         for i in port_list:
-            if str(i).find('CH340') != -1:
+            if str(i).find('usbserial-110') != -1: # plz modify the device name if needed
                 s = serial.Serial(i.device, 115200, timeout=0)
         #s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
         print('\nC works')
@@ -376,12 +392,19 @@ def calling(phonenum):
 
                 # New Version:
                 # Transcribe streaming audio from a microphone 
-                executor.submit(speech2text, )
 
+                # executor.submit(speech2text(), )
 
-                # Play the audio file to let the user hear the sound
-                pl = PlayMP3('audio file1.mp3')
-                executor.submit(pl.play, )
+                # # Text to speech
+                # text = "Hello. This is Jack. Long Time No See. How is everything going these days. This calling is from Google Cloud Platform using Artificial Intelligence. I wanna ask if Polyu has any room for improvement, please reply and I will record your audio. When you finish your comment, please ring off directly. "
+                # text2speech(text)
+
+                # # Play the audio file to let the user hear the sound
+                # print("A")
+                # pl = PlayMP3('audio file1.mp3')
+                # executor.submit(pl.play)
+                # print("B")
+                executor.submit(speech2text)
 
                 
 
@@ -401,12 +424,7 @@ def calling(phonenum):
 
 def main():
 
-    text = "Hello. This is Jack. Long Time No See. How is everything going these days.  I wanna ask do you have any comments on our service? please reply and I will record your audio. When you finish your comment, please ring off directly. "
-
-    text2speech(text)
-
-    calling(...) # input your telephone
-    # pl = PlayMP3('audio file1.mp3')
+    calling(11111111) # Fill your telephone number 
 
     # executor = ThreadPoolExecutor(max_workers=16)
     # executor.submit(speech2text, )
