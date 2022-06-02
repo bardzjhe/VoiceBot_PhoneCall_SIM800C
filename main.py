@@ -405,7 +405,7 @@ def main():
 
     text2speech(text)
 
-    calling(94030591)
+    calling(...) # input your telephone
     # pl = PlayMP3('audio file1.mp3')
 
     # executor = ThreadPoolExecutor(max_workers=16)
