@@ -23,6 +23,8 @@ With virtualenv, it's possible to install this library without needing system in
 
 For more installing details, please refer to [this](https://github.com/googleapis/python-texttospeech).
 
+Install other packages if needed. 
+
 ### NLP-related features
 
 Apart from calling function, it provides basic MP3 playing function, and audio recording. As for advanced NLP-related features, which include
