@@ -43,8 +43,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [google.oauth2.service_account module](https://google-auth.readthedocs.io/en/master/reference/google.oauth2.service_account.html)
 
-[Introduction to JWT](https://baobao555.tech/archives/40) (in Simplified Chinese)
-
 [YouTube 1](https://www.youtube.com/watch?v=ZXnPMzmrmIY)
 
 [YouTube 2](https://www.youtube.com/watch?v=lKra6E_tp5U&list=PL3JVwFmb_BnQlc47zGPQFzrKeyXiolAoS)
