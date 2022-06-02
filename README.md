@@ -27,12 +27,12 @@ For more installing details, please refer to [this](https://github.com/googleapi
 
 Apart from calling function, it provides basic MP3 playing function, and audio recording. As for advanced NLP-related features, which include
 
-> 1. Convert a text file to mp3/wav format utilizing Google Cloud API, and this file would be played later.
-> 2. Convert the audio recording file in wav to text file.
-> 3. Languages should preferably include English, Cantonese and Mandarin. 
+>1. Convert a text file to mp3/wav format utilizing Google Cloud API, and this file would be played later. 
+>2. ~~Convert the audio recording file in wav to text file. ~~
+>2. Transcribe streaming audio from a microphone. 
+>3. Languages should preferably include English, Cantonese and Mandarin. 
 
-Those are achieved with the help of [Google Texttospeech API](https://cloud.google.com/text-to-speech). For 
-
+Those are achieved with the help of [GCP API](https://cloud.google.com), including texttospeech and speech.  
 
 ## License
 
@@ -45,8 +45,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [Introduction to JWT](https://baobao555.tech/archives/40) (in Simplified Chinese)
 
-[YouTube Video](https://www.youtube.com/watch?v=ZXnPMzmrmIY)
+[YouTube 1](https://www.youtube.com/watch?v=ZXnPMzmrmIY)
 
-[YouTube Speect2Text](https://www.youtube.com/watch?v=lKra6E_tp5U&list=PL3JVwFmb_BnQlc47zGPQFzrKeyXiolAoS)
+[YouTube 2](https://www.youtube.com/watch?v=lKra6E_tp5U&list=PL3JVwFmb_BnQlc47zGPQFzrKeyXiolAoS)
 
 As for the issue of testing ATK-SIM800C GSM/GPRS Module, please use XCOM V2.0 and, if necessary, RTFM :satisfied:
