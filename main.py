@@ -395,7 +395,7 @@ def calling(phonenum):
 
 def main():
 
-    calling(94030591)
+    calling(...) # Fill your telephone number 
 
     # print("test t2s API:")
     # text2speech()
