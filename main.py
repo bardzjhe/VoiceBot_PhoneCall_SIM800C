@@ -21,8 +21,6 @@ from six.moves import queue
 RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
-# Text as global variable
-text = "Hello. This is Jack. Long Time No See. How is everything going these days.  I wanna ask do you have any comments on our service? please reply and I will record your audio. When you finish your comment, please ring off directly. "
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ServiceAccount.json' # plz modify the name if needed
 client = texttospeech.TextToSpeechClient()
@@ -254,6 +252,15 @@ class PlayMP3():
             time.sleep(1)
         mixer.music.stop()
 
+def playmusic(filename):
+        mixer.init()
+        mixer.music.load(filename)
+        # print("* recording")
+        mixer.music.play()
+        print("The mp3 should be played")
+        while mixer.music.get_busy():  # wait for music to finish playing
+            time.sleep(1)
+        mixer.music.stop()
 
 # Record Audio
 # class AudiRecorder():  # Audio class based on pyAudio and Wave
@@ -366,18 +373,17 @@ def calling(phonenum):
                 # audio_thread = AudiRecorder()
                 # executor.submit(audio_thread.start(), )
 
+
                 # New Version:
                 # Transcribe streaming audio from a microphone 
-                executor.submit(speech2text(), )
+                executor.submit(speech2text, )
 
-                # Text to speech
-                global text
-                text2speech(text)
 
                 # Play the audio file to let the user hear the sound
                 pl = PlayMP3('audio file1.mp3')
-                executor.submit(pl.play())
+                executor.submit(pl.play, )
 
+                
 
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
@@ -395,10 +401,21 @@ def calling(phonenum):
 
 def main():
 
-    calling(...) # Fill your telephone number 
+    text = "Hello. This is Jack. Long Time No See. How is everything going these days.  I wanna ask do you have any comments on our service? please reply and I will record your audio. When you finish your comment, please ring off directly. "
 
+    text2speech(text)
+
+    # calling(94030591)
+    # pl = PlayMP3('audio file1.mp3')
+
+    # executor = ThreadPoolExecutor(max_workers=16)
+    # executor.submit(speech2text, )
+    # executor.submit(pl.play, )
+    
     # print("test t2s API:")
-    # text2speech()
+    # text2speech(text)
+    
+    
 
     # print('\ntest s2t API:')
     # speech2text()
