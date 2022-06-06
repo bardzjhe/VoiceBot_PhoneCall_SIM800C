@@ -228,11 +228,11 @@ def text2speech(text):
         audio_config=audio_config
     )
 
-    with open('audio file1.mp3', 'wb') as output:
+    with open('result.mp3', 'wb') as output:
         output.write(response.audio_content)
 
     # Play the audio file to let the user hear the sound
-    pl = PlayMP3('audio file1.mp3')
+    pl = PlayMP3('result.mp3')
     pl.play()
 
 # Play mp3 files, which is converted from the text using GCP API. 
