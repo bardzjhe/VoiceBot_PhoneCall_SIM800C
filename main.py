@@ -249,16 +249,6 @@ class PlayMP3():
             time.sleep(1)
         mixer.music.stop()
 
-def playmusic(filename):
-        mixer.init()
-        mixer.music.load(filename)
-        # print("* recording")
-        mixer.music.play()
-        print("The mp3 should be played")
-        while mixer.music.get_busy():  # wait for music to finish playing
-            time.sleep(1)
-        mixer.music.stop()
-
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
 
