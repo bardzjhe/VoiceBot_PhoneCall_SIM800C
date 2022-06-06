@@ -24,8 +24,6 @@ import requests
 RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
-# Text as global variable
-text = "Hello. This is Jack. Long Time No See. How is everything going these days.  I wanna ask do you have any comments on our service? please reply and I will record your audio. When you finish your comment, please ring off directly. "
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
 client = texttospeech.TextToSpeechClient()
@@ -136,6 +134,8 @@ def listen_print_save_loop(responses, stream, phonenum):
         # If the previous result was longer than this one, we need to print
         # some extra spaces to overwrite the previous result
         stream.closed = True  # off mic
+
+        # get result from kimia AI 
         # 使用 GET 方式下載普通網頁
         requestURL = 'https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=' + str(phonenum)
         print(f"Request: {requestURL}")
@@ -160,7 +160,7 @@ def listen_print_save_loop(responses, stream, phonenum):
             num_chars_printed = len(transcript)
 
         else:
-            print(transcript + overwrite_chars)
+            print(f"Transcript: {transcript + overwrite_chars}")
             print(f"Confidence: {result.alternatives[0].confidence:.0%}")
 
             # Exit recognition if any of the transcribed phrases could be
@@ -327,13 +327,13 @@ def calling(phonenum):
                 break
 
 def main():
-    calling(51153639) # Fill your telephone number
+    # calling(51153639) # Fill your telephone number
     
-    # test = True
-    # while 1:
-    #     if test == True:
-    #         executor.submit(speech2text, 51153639)
-    #         test = False
+    test = True
+    while 1:
+        if test == True:
+            executor.submit(speech2text, 51153639)
+            test = False
     
     # print("test t2s API:")
     # text2speech(text)
