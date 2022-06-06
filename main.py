@@ -149,7 +149,7 @@ def listen_print_save_loop(responses, stream, phonenum):
         # 輸出網頁 HTML 原始碼
         print(r.text)
 
-        executor.submit(playAudioByText, r.text)
+        executor.submit(playAudioByText, str(r.text))
 
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
@@ -157,7 +157,7 @@ def listen_print_save_loop(responses, stream, phonenum):
         if not result.is_final:
             sys.stdout.write(transcript + overwrite_chars + "\r")
             sys.stdout.flush()
-
+            # print("test")
             num_chars_printed = len(transcript)
 
         else:
@@ -212,7 +212,7 @@ def text2speech(text):
 
     voice1 = texttospeech.VoiceSelectionParams(
         language_code='yue-Hant-HK', 
-        ssml_gender=texttospeech.SsmlVoiceGender.MALE
+        ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
     )
 
     # print(client.list_voices())
