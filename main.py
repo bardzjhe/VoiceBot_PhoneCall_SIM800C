@@ -145,7 +145,6 @@ def listen_print_save_loop(responses, stream, phonenum):
         if r.status_code == requests.codes.ok:
             print("OK")
 
-
         # 輸出網頁 HTML 原始碼
         print(r.text)
 
@@ -199,9 +198,8 @@ def speech2text(phonenum):
                 speech.StreamingRecognizeRequest(audio_content=content)
                 for content in audio_generator
             )
-
+            
             responses = client.streaming_recognize(streaming_config, requests)
-
             # Now, put the transcription responses to use.
             listen_print_save_loop(responses, stream, phonenum)
 
@@ -230,35 +228,6 @@ def text2speech(text):
     with open('audio file1.mp3', 'wb') as output:
         output.write(response.audio_content)
 
-
-# @Deprecated version: convert speech from wav file to text, not simultaneously. 
-# def speech2text():
-#     ## Step 1. Loadd the media files (Transcribe media files)
-#     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
-#     secondary_language1 = "en-US"
-#     secondary_language2 = "zh"
-#     media_file_name_wav = 'temp_audio.wav'
-#     with open(media_file_name_wav, 'rb') as f2:
-#         byte_data_wav = f2.read()
-#     audio_wav = speech.RecognitionAudio(content=byte_data_wav)
-
-#     ## Step 2. Configure Media Files Output
-#     config_wav = speech.RecognitionConfig(
-#         sample_rate_hertz=44100,
-#         enable_automatic_punctuation=True,
-#         language_code='en_us',
-#         alternative_language_codes=[secondary_language1, secondary_language2],
-#         audio_channel_count=2
-#     )
-      
-#     ## Step 3. Transcribing the Recognition objects
-#     response_standard_wav = speech_client.recognize(
-#         config=config_wav,
-#         audio=audio_wav
-#     )
-#     print (response_standard_wav)
-
-
 # Play mp3 files, which is converted from the text using GCP API. 
 class PlayMP3():
 
@@ -285,58 +254,6 @@ def playmusic(filename):
         while mixer.music.get_busy():  # wait for music to finish playing
             time.sleep(1)
         mixer.music.stop()
-
-# Record Audio
-# class AudiRecorder():  # Audio class based on pyAudio and Wave
-
-#     # constructor
-#     def __init__(self):
-#         self.open = True
-#         self.rate = 44100
-#         self.frames_per_buffer = 1024
-#         self.channels = 2
-#         self.format = pyaudio.paInt16
-#         self.audio_filename = "temp_audio.wav"  # Recording file name
-#         self.audio = pyaudio.PyAudio()
-#         self.stream = self.audio.open(format=self.format,
-#                                       channels=self.channels,
-#                                       rate=self.rate,
-#                                       input=True,
-#                                       frames_per_buffer=self.frames_per_buffer)
-#         self.audio_frames = []
-#         # Audio starts being recorded
-
-#     def record(self):
-
-#         self.stream.start_stream()
-#         while (self.open == True):
-#             data = self.stream.read(self.frames_per_buffer)
-#             self.audio_frames.append(data)
-#             if self.open == False:
-#                 break
-
-#     # Finishes the audio recording therefore the thread too
-#     def stop(self):
-
-#         if self.open == True:
-#             self.open = False
-#             self.stream.stop_stream()
-#             self.stream.close()
-#             self.audio.terminate()
-
-#             waveFile = wave.open(self.audio_filename, 'wb')
-#             waveFile.setnchannels(self.channels)
-#             waveFile.setsampwidth(self.audio.get_sample_size(self.format))
-#             waveFile.setframerate(self.rate)
-#             waveFile.writeframes(b''.join(self.audio_frames))
-#             waveFile.close()
-#         pass
-
-#     # Launches the audio recording function using a thread
-#     def start(self):
-#         audio_thread = threading.Thread(target=self.record)
-#         print("The recording should start")
-#         audio_thread.start()
 
 def playAudioByText(transcript):
     # Text to speech
@@ -399,30 +316,7 @@ def calling(phonenum):
             # Dailed
             if x.find('+COLP: \"') != -1:
                 print("\ndialed")
-
-                # @Deprecated save the user's voice into a file after he/she hangs up
-                # Start audio recording
-                # audio_thread = AudiRecorder()
-                # executor.submit(audio_thread.start(), )
-
-
-                # New Version:
-                # Transcribe streaming audio from a microphone 
-
-                # executor.submit(speech2text(), )
-
-                # # Text to speech
-                # text = "Hello. This is Jack. Long Time No See. How is everything going these days. This calling is from Google Cloud Platform using Artificial Intelligence. I wanna ask if Polyu has any room for improvement, please reply and I will record your audio. When you finish your comment, please ring off directly. "
-                # text2speech(text)
-
-                # # Play the audio file to let the user hear the sound
-                # print("A")
-                # pl = PlayMP3('audio file1.mp3')
-                # executor.submit(pl.play)
-                # print("B")
                 executor.submit(speech2text, phonenum)
-
-                
 
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
@@ -439,23 +333,16 @@ def calling(phonenum):
                 break
 
 def main():
-
     calling(51153639) # Fill your telephone number
     
     # test = True
     # while 1:
     #     if test == True:
-    #         executor.submit(speech2text)
+    #         executor.submit(speech2text, 51153639)
     #         test = False
-
-    # executor = ThreadPoolExecutor(max_workers=16)
-    # executor.submit(speech2text, )
-    # executor.submit(pl.play, )
     
     # print("test t2s API:")
     # text2speech(text)
-    
-    
 
     # print('\ntest s2t API:')
     # speech2text()
