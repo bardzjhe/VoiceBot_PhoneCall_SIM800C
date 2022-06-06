@@ -17,6 +17,9 @@ from google.cloud import texttospeech
 from google.cloud import speech
 from six.moves import queue
 
+# 引入 requests 模組
+import requests
+
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE/10) # 100ms
@@ -133,8 +136,18 @@ def listen_print_save_loop(responses, stream):
         # If the previous result was longer than this one, we need to print
         # some extra spaces to overwrite the previous result
         stream.closed = True  # off mic
+        # 使用 GET 方式下載普通網頁
+        r = requests.get('https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=51153639')
 
-        executor.submit(playAudioByText, transcript)
+        # 檢查狀態碼是否 OK
+        if r.status_code == requests.codes.ok:
+            print("OK")
+
+
+        # 輸出網頁 HTML 原始碼
+        print(r.text)
+
+        executor.submit(playAudioByText, r.text)
 
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
@@ -147,6 +160,7 @@ def listen_print_save_loop(responses, stream):
 
         else:
             print(transcript + overwrite_chars)
+            print(f"Confidence: {result.alternatives[0].confidence:.0%}")
 
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
@@ -173,7 +187,7 @@ def speech2text():
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=False
+        config=config, interim_results=False, single_utterance=True
     )
 
     while True:
@@ -195,7 +209,7 @@ def text2speech(text):
     synthesis_input = texttospeech.SynthesisInput(text=text)
 
     voice1 = texttospeech.VoiceSelectionParams(
-        language_code='en-in', 
+        language_code='yue-Hant-HK', 
         ssml_gender=texttospeech.SsmlVoiceGender.MALE
     )
 
@@ -424,7 +438,13 @@ def calling(phonenum):
 
 def main():
 
-    calling(11111111) # Fill your telephone number 
+    calling(51153639) # Fill your telephone number
+    
+    # test = True
+    # while 1:
+    #     if test == True:
+    #         executor.submit(speech2text)
+    #         test = False
 
     # executor = ThreadPoolExecutor(max_workers=16)
     # executor.submit(speech2text, )
