@@ -148,7 +148,7 @@ def listen_print_save_loop(responses, stream, phonenum):
         # 輸出網頁 HTML 原始碼
         print(r.text)
 
-        executor.submit(playAudioByText, str(r.text))
+        executor.submit(text2speech, str(r.text))
 
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
@@ -228,6 +228,10 @@ def text2speech(text):
     with open('audio file1.mp3', 'wb') as output:
         output.write(response.audio_content)
 
+    # Play the audio file to let the user hear the sound
+    pl = PlayMP3('audio file1.mp3')
+    pl.play()
+
 # Play mp3 files, which is converted from the text using GCP API. 
 class PlayMP3():
 
@@ -254,16 +258,6 @@ def playmusic(filename):
         while mixer.music.get_busy():  # wait for music to finish playing
             time.sleep(1)
         mixer.music.stop()
-
-def playAudioByText(transcript):
-    # Text to speech
-    # text = "Hello. This is Jack. Long Time No See. How is everything going these days. This calling is from Google Cloud Platform using Artificial Intelligence. I wanna ask if Polyu has any room for improvement, please reply and I will record your audio. When you finish your comment, please ring off directly. "
-    text2speech(transcript)
-
-    # Play the audio file to let the user hear the sound
-    pl = PlayMP3('audio file1.mp3')
-    pl.play()
-
 
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
