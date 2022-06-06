@@ -156,7 +156,6 @@ def listen_print_save_loop(responses, stream, phonenum):
         if not result.is_final:
             sys.stdout.write(transcript + overwrite_chars + "\r")
             sys.stdout.flush()
-            # print("test")
             num_chars_printed = len(transcript)
 
         else:
@@ -192,16 +191,20 @@ def speech2text(phonenum):
     )
 
     while True:
-        with MicrophoneStream(RATE, CHUNK) as stream:
-            audio_generator = stream.generator()
-            requests = (
-                speech.StreamingRecognizeRequest(audio_content=content)
-                for content in audio_generator
-            )
-            
-            responses = client.streaming_recognize(streaming_config, requests)
-            # Now, put the transcription responses to use.
-            listen_print_save_loop(responses, stream, phonenum)
+        try:
+            with MicrophoneStream(RATE, CHUNK) as stream:
+                audio_generator = stream.generator()
+                requests = (
+                    speech.StreamingRecognizeRequest(audio_content=content)
+                    for content in audio_generator
+                )
+                
+                responses = client.streaming_recognize(streaming_config, requests, timeout = 10)
+                print(responses)
+                # Now, put the transcription responses to use.
+                listen_print_save_loop(responses, stream, phonenum)
+        except:
+            print("An exception occurred")
 
 
 def text2speech(text):
@@ -234,7 +237,6 @@ def text2speech(text):
 
 # Play mp3 files, which is converted from the text using GCP API. 
 class PlayMP3():
-
     # Constructor to assign the fileName, which is the mp3 file to play
     def __init__(self, name):
         self._filename = name
@@ -317,13 +319,13 @@ def calling(phonenum):
                 break
 
 def main():
-    # calling(51153639) # Fill your telephone number
+    calling(51153639) # Fill your telephone number
     
-    test = True
-    while 1:
-        if test == True:
-            executor.submit(speech2text, 51153639)
-            test = False
+    # test = True
+    # while 1:
+    #     if test == True:
+    #         executor.submit(speech2text, 51153639)
+    #         test = False
     
     # print("test t2s API:")
     # text2speech(text)
@@ -332,7 +334,7 @@ def main():
     # speech2text()
 
     print("Done")
-    exit()
+    os._exit(1)
 
 
 if __name__ == "__main__":
