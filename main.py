@@ -100,7 +100,7 @@ class MicrophoneStream(object):
             yield b"".join(data)
 
 
-def listen_print_save_loop(responses, stream):
+def listen_print_save_loop(responses, stream, phonenum):
     """Iterates through server responses, then prints and saves them.
 
     The responses passed is a generator that will block until a response
@@ -137,7 +137,9 @@ def listen_print_save_loop(responses, stream):
         # some extra spaces to overwrite the previous result
         stream.closed = True  # off mic
         # 使用 GET 方式下載普通網頁
-        r = requests.get('https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=51153639')
+        requestURL = 'https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=' + str(phonenum)
+        print(f"Request: {requestURL}")
+        r = requests.get(requestURL)
 
         # 檢查狀態碼是否 OK
         if r.status_code == requests.codes.ok:
@@ -171,7 +173,7 @@ def listen_print_save_loop(responses, stream):
             num_chars_printed = 0
 
 
-def speech2text():
+def speech2text(phonenum):
     # See http://g.co/cloud/speech/docs/languages
     # for a list of supported languages.
     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
@@ -201,7 +203,7 @@ def speech2text():
             responses = client.streaming_recognize(streaming_config, requests)
 
             # Now, put the transcription responses to use.
-            listen_print_save_loop(responses, stream)
+            listen_print_save_loop(responses, stream, phonenum)
 
 
 def text2speech(text):
@@ -418,7 +420,7 @@ def calling(phonenum):
                 # pl = PlayMP3('audio file1.mp3')
                 # executor.submit(pl.play)
                 # print("B")
-                executor.submit(speech2text)
+                executor.submit(speech2text, phonenum)
 
                 
 
