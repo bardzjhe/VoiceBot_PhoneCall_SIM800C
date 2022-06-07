@@ -148,8 +148,7 @@ def listen_print_save_loop(responses, stream, phonenum):
         # 輸出網頁 HTML 原始碼
         print(r.text)
 
-        executor.submit(text2speech, str(r.text))
-
+        executor.submit(text2speech, str(r.text), result.language_code)
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
 
@@ -160,6 +159,7 @@ def listen_print_save_loop(responses, stream, phonenum):
 
         else:
             print(f"Transcript: {transcript + overwrite_chars}")
+            print(f"Language code: {result.language_code}")
             print(f"Confidence: {result.alternatives[0].confidence:.0%}")
 
             # Exit recognition if any of the transcribed phrases could be
@@ -207,12 +207,11 @@ def speech2text(phonenum):
             continue
 
 
-def text2speech(text):
-
+def text2speech(text, language_code):
     synthesis_input = texttospeech.SynthesisInput(text=text)
 
     voice1 = texttospeech.VoiceSelectionParams(
-        language_code='yue-Hant-HK', 
+        language_code=language_code, 
         ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
     )
 
@@ -228,6 +227,7 @@ def text2speech(text):
         audio_config=audio_config
     )
 
+    # write response to the audio file
     with open('result.mp3', 'wb') as output:
         output.write(response.audio_content)
 
@@ -319,15 +319,15 @@ def calling(phonenum):
                 break
 
 def main():
-    calling(51153639) # Fill your telephone number
+    # calling(51153639) # Fill your telephone number
     
     # uncomment to test without phone
 
-    # test = True
-    # while 1:
-    #     if test == True:
-    #         executor.submit(speech2text, 51153639)
-    #         test = False
+    test = True
+    while 1:
+        if test == True:
+            executor.submit(speech2text, 51153639)
+            test = False
 
     print("Done")
     os._exit(1)
