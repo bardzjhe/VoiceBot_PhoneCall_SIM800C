@@ -321,17 +321,13 @@ def calling(phonenum):
 def main():
     calling(51153639) # Fill your telephone number
     
+    # uncomment to test without phone
+
     # test = True
     # while 1:
     #     if test == True:
     #         executor.submit(speech2text, 51153639)
     #         test = False
-    
-    # print("test t2s API:")
-    # text2speech(text)
-
-    # print('\ntest s2t API:')
-    # speech2text()
 
     print("Done")
     os._exit(1)
