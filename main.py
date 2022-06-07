@@ -199,12 +199,12 @@ def speech2text(phonenum):
                     for content in audio_generator
                 )
                 
-                responses = client.streaming_recognize(streaming_config, requests, timeout = 10)
+                responses = client.streaming_recognize(streaming_config, requests, timeout = 5)
                 print(responses)
                 # Now, put the transcription responses to use.
                 listen_print_save_loop(responses, stream, phonenum)
         except:
-            print("An exception occurred")
+            continue
 
 
 def text2speech(text):
