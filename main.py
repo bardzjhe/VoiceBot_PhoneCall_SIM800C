@@ -26,6 +26,8 @@ CHUNK = int(RATE/10) # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
+config_phoneNumber = 51153639
+config_serialDeviceName = 'usbserial-110'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
@@ -279,7 +281,7 @@ def calling(phonenum):
 
     # find the correct port for data transmission
         for i in port_list:
-            if str(i).find('usbserial-110') != -1: # plz modify the device name if needed
+            if str(i).find(config_serialDeviceName) != -1:
                 s = serial.Serial(i.device, 115200, timeout=0)
         #s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
         print('\nC works')
@@ -338,7 +340,7 @@ def main():
     test = True
     while 1:
         if test == True:
-            executor.submit(speech2text, 51153639)
+            executor.submit(speech2text, config_phoneNumber)
             test = False
 
     print("Done")
