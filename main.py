@@ -134,7 +134,6 @@ def listen_print_save_loop(responses, stream, phonenum):
         # If the previous result was longer than this one, we need to print
         # some extra spaces to overwrite the previous result
         stream.closed = True  # off mic
-        # stream.exit()
 
         # get result from kimia AI 
         # 使用 GET 方式下載普通網頁
@@ -192,7 +191,10 @@ def speech2text(phonenum):
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=RATE,
         language_code=primary_language,
-        alternative_language_codes=[secondary_language1, secondary_language2]
+        alternative_language_codes=[secondary_language1, secondary_language2],
+        use_enhanced=True,
+        # A model must be specified to use enhanced model.
+        model="command_and_search"
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
@@ -329,15 +331,15 @@ def calling(phonenum):
                 break
 
 def main():
-    calling(51153639) # Fill your telephone number
+    # calling(94030591) # Fill your telephone number
     
     # uncomment to test without phone
 
-    # test = True
-    # while 1:
-    #     if test == True:
-    #         executor.submit(speech2text, 51153639)
-    #         test = False
+    test = True
+    while 1:
+        if test == True:
+            executor.submit(speech2text, 51153639)
+            test = False
 
     print("Done")
     os._exit(1)
