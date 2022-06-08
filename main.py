@@ -134,6 +134,7 @@ def listen_print_save_loop(responses, stream, phonenum):
         # If the previous result was longer than this one, we need to print
         # some extra spaces to overwrite the previous result
         stream.closed = True  # off mic
+        # stream.exit()
 
         # get result from kimia AI 
         # 使用 GET 方式下載普通網頁
@@ -148,7 +149,15 @@ def listen_print_save_loop(responses, stream, phonenum):
         # 輸出網頁 HTML 原始碼
         print(r.text)
 
-        executor.submit(text2speech, str(r.text), result.language_code)
+        # executor.submit(text2speech, str(r.text), result.language_code)
+        text2speech(str(r.text), result.language_code)
+        print(result.language_code)
+        if result.language_code == "en-us" or result.language_code == "en-uk":
+            print("What is your question?")
+            text2speech("What is your question?", result.language_code)
+        else:
+            print("請說出你的問題")
+            text2speech("請說出你的問題", result.language_code)
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
 
@@ -198,8 +207,9 @@ def speech2text(phonenum):
                     speech.StreamingRecognizeRequest(audio_content=content)
                     for content in audio_generator
                 )
-                
+                print(requests)
                 responses = client.streaming_recognize(streaming_config, requests, timeout = 5)
+                # responses = client.streaming_recognize(streaming_config, requests)
                 print(responses)
                 # Now, put the transcription responses to use.
                 listen_print_save_loop(responses, stream, phonenum)
@@ -319,15 +329,15 @@ def calling(phonenum):
                 break
 
 def main():
-    # calling(51153639) # Fill your telephone number
+    calling(51153639) # Fill your telephone number
     
     # uncomment to test without phone
 
-    test = True
-    while 1:
-        if test == True:
-            executor.submit(speech2text, 51153639)
-            test = False
+    # test = True
+    # while 1:
+    #     if test == True:
+    #         executor.submit(speech2text, 51153639)
+    #         test = False
 
     print("Done")
     os._exit(1)
