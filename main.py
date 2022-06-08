@@ -206,7 +206,7 @@ def speech2text(phonenum):
             with MicrophoneStream(RATE, CHUNK) as stream:
                 audio_generator = stream.generator()
                 requests = (
-                    speech.StreamingRecognizeRequest(audio_content=content)
+                    speech.StreamingRecognizeRequest(streaming_config=streaming_config, audio_content=content)
                     for content in audio_generator
                 )
                 print(requests)
