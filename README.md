@@ -36,9 +36,9 @@ Apart from calling function, it provides basic MP3 playing function, and audio r
 Those are achieved with the help of [GCP API](https://cloud.google.com), including texttospeech and speech.  
 
 ### Demo
-![English](public/image/English.jpg)
-![Cantonese](public/image/Cantonese2.jpg)
-![Mandrian](public/image/Mandrian.jpg)
+![English](image/English.jpg)
+![Cantonese](image/Cantonese2.jpg)
+![Mandrian](image/Mandarin Chinese.jpg)
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
