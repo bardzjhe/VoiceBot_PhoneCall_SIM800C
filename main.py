@@ -25,9 +25,9 @@ RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ServiceAccount.json' # plz modify the name if needed
 config_phoneNumber = 51153639
-config_serialDeviceName = 'usbserial-110'
+config_serialDeviceName = 'USB-SERIAL'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
@@ -192,6 +192,7 @@ def speech2text(phonenum):
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=RATE,
+        speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
         language_code=primary_language,
         alternative_language_codes=[secondary_language1, secondary_language2],
         use_enhanced=True,
@@ -333,18 +334,19 @@ def calling(phonenum):
                 break
 
 def main():
-    # calling(94030591) # Fill your telephone number
+    
+    calling(94030591) # Fill your telephone number
     
     # uncomment to test without phone
 
-    test = True
-    while 1:
-        if test == True:
-            executor.submit(speech2text, config_phoneNumber)
-            test = False
+    # test = True
+    # while 1:
+    #     if test == True:
+    #         executor.submit(speech2text, config_phoneNumber)
+    #         test = False
 
-    print("Done")
-    os._exit(1)
+    # print("Done")
+    # os._exit(1)
 
 
 if __name__ == "__main__":
