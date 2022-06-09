@@ -38,7 +38,7 @@ Those are achieved with the help of [GCP API](https://cloud.google.com), includi
 ### Demo
 ![English](image/English.jpg)
 ![Cantonese](image/Cantonese2.jpg)
-![Mandrian](image/Mandarin Chinese.jpg)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
