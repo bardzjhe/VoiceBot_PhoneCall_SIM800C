@@ -335,7 +335,7 @@ def calling(phonenum):
 
 def main():
     
-    calling(94030591) # Fill your telephone number
+    calling() # Fill your telephone number
     
     # uncomment to test without phone
 
