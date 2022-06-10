@@ -16,7 +16,6 @@ from concurrent.futures import ThreadPoolExecutor
 from google.cloud import texttospeech
 from google.cloud import speech
 from six.moves import queue
-# test
 
 # 引入 requests 模組
 import requests
@@ -26,7 +25,7 @@ RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ServiceAccount.json' # plz modify the name if needed
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
 config_phoneNumber = 51153639
 config_serialDeviceName = 'USB-SERIAL'
 client = texttospeech.TextToSpeechClient()
@@ -336,7 +335,7 @@ def calling(phonenum):
 
 def main():
     
-    calling() # Fill your telephone number
+    calling(config_phoneNumber) # Fill your telephone number
     
     # uncomment to test without phone
 
@@ -346,8 +345,8 @@ def main():
     #         executor.submit(speech2text, config_phoneNumber)
     #         test = False
 
-    # print("Done")
-    # os._exit(1)
+    print("Done")
+    os._exit(1)
 
 
 if __name__ == "__main__":
