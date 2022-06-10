@@ -298,8 +298,12 @@ def calling(phonenum):
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
 
         print("\nD works")
-        sio.write(f'ATE1\nAT+COLP=1\nATD{str(phonenum)};\n')
+        sio.write(f'AT+DDET=1\nATS0=2\nATE1\nAT+COLP=1\nATD{str(phonenum)};\n')
         ''' 
+        AT+DDET=1: enable DTMF detection
+
+        ATS0=2: Set Number of Rings before Automatically Answering the Call
+
         ATE1: 用於設置開啓回顯模式，檢測Module與串口是否連通，能否接收AT命令
         開啓回顯，有利於調試
         
