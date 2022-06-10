@@ -27,7 +27,7 @@ CHUNK = int(RATE/10) # 100ms
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
 config_phoneNumber = 51153639
-config_serialDeviceName = 'USB-SERIAL'
+config_serialDeviceName = 'usbserial-110'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
@@ -203,7 +203,7 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=False, single_utterance=True
     )
-
+    text2speech("請說出你的問題", "yue-Hant-HK")
     while True:
         try:
             with MicrophoneStream(RATE, CHUNK) as stream:
@@ -318,6 +318,31 @@ def calling(phonenum):
             if x.find('+COLP: \"') != -1:
                 print("\ndialed")
                 executor.submit(speech2text, phonenum)
+
+            if x.find('+DTMF: 1') != -1:
+                print("\nDTMF:1")
+            elif x.find('+DTMF: 2') != -1:
+                print("\nDTMF:2")
+            elif x.find('+DTMF: 3') != -1:
+                print("\nDTMF:3")
+            elif x.find('+DTMF: 4') != -1:
+                print("\nDTMF:4")
+            elif x.find('+DTMF: 5') != -1:
+                print("\nDTMF:5")
+            elif x.find('+DTMF: 6') != -1:
+                print("\nDTMF:6")
+            elif x.find('+DTMF: 7') != -1:
+                print("\nDTMF:7")
+            elif x.find('+DTMF: 8') != -1:
+                print("\nDTMF:8")
+            elif x.find('+DTMF: 9') != -1:
+                print("\nDTMF:9")
+            elif x.find('+DTMF: 0') != -1:
+                print("\nDTMF:0")
+            elif x.find('+DTMF: #') != -1:
+                print("\nDTMF:#")
+            elif x.find('+DTMF: *') != -1:
+                print("\nDTMF:*")
 
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
