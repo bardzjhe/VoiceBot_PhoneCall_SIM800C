@@ -25,9 +25,9 @@ RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
-config_phoneNumber = 51153639
-config_serialDeviceName = 'usbserial-110'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'unique-nebula-352804-43d6318f9e1b.json' # plz modify the name if needed
+config_phoneNumber = 92017352
+config_serialDeviceName = 'usbserial-14410'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
@@ -100,6 +100,25 @@ class MicrophoneStream(object):
             yield b"".join(data)
 
 
+
+def AI_Enquiry(transcript, phonenum):
+     # get result from kimia AI 
+    # 使用 GET 方式下載普通網頁
+    
+    requestURL = 'https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=' + str(phonenum)
+    print(f"Request: {requestURL}")
+    r = requests.get(requestURL)
+
+    # 檢查狀態碼是否 OK
+    if r.status_code == requests.codes.ok:
+        print("OK")
+
+    # 輸出網頁 HTML 原始碼
+    print(r.text)
+    return r.text
+
+
+
 def listen_print_save_loop(responses, stream, phonenum):
     """Iterates through server responses, then prints and saves them.
 
@@ -137,21 +156,11 @@ def listen_print_save_loop(responses, stream, phonenum):
         # some extra spaces to overwrite the previous result
         stream.closed = True  # off mic
 
-        # get result from kimia AI 
-        # 使用 GET 方式下載普通網頁
-        requestURL = 'https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=' + str(phonenum)
-        print(f"Request: {requestURL}")
-        r = requests.get(requestURL)
-
-        # 檢查狀態碼是否 OK
-        if r.status_code == requests.codes.ok:
-            print("OK")
-
-        # 輸出網頁 HTML 原始碼
-        print(r.text)
+        # get result from kimia AI
+        string = AI_Enquiry(transcript, phonenum)
 
         # executor.submit(text2speech, str(r.text), result.language_code)
-        text2speech(str(r.text), result.language_code)
+        text2speech(string, result.language_code)
         print(result.language_code)
         if result.language_code == "en-us" or result.language_code == "en-uk":
             print("What is your question?")
@@ -320,27 +329,38 @@ def calling(phonenum):
                 executor.submit(speech2text, phonenum)
 
             if x.find('+DTMF: 1') != -1:
-                print("\nDTMF:1")
+                string = AI_Enquiry("1號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 2') != -1:
-                print("\nDTMF:2")
+                string = AI_Enquiry("2號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 3') != -1:
-                print("\nDTMF:3")
+                string = AI_Enquiry("3號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 4') != -1:
-                print("\nDTMF:4")
+                string = AI_Enquiry("4號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 5') != -1:
-                print("\nDTMF:5")
+                string = AI_Enquiry("5號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 6') != -1:
-                print("\nDTMF:6")
+                string = AI_Enquiry("6號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 7') != -1:
-                print("\nDTMF:7")
+                string = AI_Enquiry("7號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 8') != -1:
-                print("\nDTMF:8")
+                string = AI_Enquiry("8號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 9') != -1:
-                print("\nDTMF:9")
+                string = AI_Enquiry("9號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 0') != -1:
-                print("\nDTMF:0")
+                string = AI_Enquiry("0號", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: #') != -1:
-                print("\nDTMF:#")
+                string = AI_Enquiry("你好", phonenum)
+                executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: *') != -1:
                 print("\nDTMF:*")
 
