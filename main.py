@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from google.cloud import texttospeech
 from google.cloud import speech
 from six.moves import queue
+from datetime import datetime
 
 # 引入 requests 模組
 import requests
@@ -25,8 +26,8 @@ RATE = 16000
 CHUNK = int(RATE/10) # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'unique-nebula-352804-43d6318f9e1b.json' # plz modify the name if needed
-config_phoneNumber = 92017352
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
+config_phoneNumber = 51153639
 config_serialDeviceName = 'usbserial-14410'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
@@ -251,12 +252,13 @@ def text2speech(text, language_code):
         audio_config=audio_config
     )
 
+    date_string = datetime.now().strftime("%d%m%Y%H%M%S")
     # write response to the audio file
-    with open('result.mp3', 'wb') as output:
+    with open('result_'+date_string+'.mp3', 'wb') as output:
         output.write(response.audio_content)
 
     # Play the audio file to let the user hear the sound
-    pl = PlayMP3('result.mp3')
+    pl = PlayMP3('result_'+date_string+'.mp3')
     pl.play()
 
 # Play mp3 files, which is converted from the text using GCP API. 
@@ -274,6 +276,8 @@ class PlayMP3():
         while mixer.music.get_busy():  # wait for music to finish playing
             time.sleep(1)
         mixer.music.stop()
+        mixer.quit()
+        os.remove(self._filename)
 
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
@@ -383,17 +387,17 @@ def calling(phonenum):
                 break
 
 def main():
-    
-    calling(config_phoneNumber) # Fill your telephone number
+    # calling(config_phoneNumber) # Fill your telephone number
     
     # uncomment to test without phone
 
     # test = True
     # while 1:
     #     if test == True:
-    #         executor.submit(speech2text, config_phoneNumber)
-    #         test = False
-
+    #         # executor.submit(speech2text, config_phoneNumber)
+    #         speech2text(config_phoneNumber)
+    #         # test = False
+    speech2text(config_phoneNumber)
     print("Done")
     os._exit(1)
 
