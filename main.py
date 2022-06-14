@@ -28,7 +28,7 @@ CHUNK = int(RATE/10) # 100ms
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
 config_phoneNumber = 51153639
-config_serialDeviceName = 'usbserial-14410'
+config_serialDeviceName = 'USB-SERIAL'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 
@@ -118,8 +118,6 @@ def AI_Enquiry(transcript, phonenum):
     print(r.text)
     return r.text
 
-
-
 def listen_print_save_loop(responses, stream, phonenum):
     """Iterates through server responses, then prints and saves them.
 
@@ -164,11 +162,14 @@ def listen_print_save_loop(responses, stream, phonenum):
         text2speech(string, result.language_code)
         print(result.language_code)
         if result.language_code == "en-us" or result.language_code == "en-uk":
-            print("What is your question?")
-            text2speech("What is your question?", result.language_code)
+            print("What can I help you?")
+            text2speech("What can I help you?", result.language_code)
+        elif result.language_code == "zh":
+            print("請問還有什麼可以幫到你?")
+            text2speech("請問還有什麼可以幫你?", result.language_code)
         else:
-            print("請說出你的問題")
-            text2speech("請說出你的問題", result.language_code)
+            print("請問重有咩可以幫你?")
+            text2speech("請問重有咩可以幫你?", result.language_code)
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
 
@@ -213,9 +214,11 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=False, single_utterance=True
     )
-    text2speech("請說出你的問題", "yue-Hant-HK")
+    # text2speech("請說出你的問題", "yue-Hant-HK")
+    text2speech("請問有咩可以幫你?", "yue-Hant-HK")
     while True:
         try:
+            # text2speech("請說出你的問題", "yue-Hant-HK")
             with MicrophoneStream(RATE, CHUNK) as stream:
                 audio_generator = stream.generator()
                 requests = (
@@ -223,7 +226,7 @@ def speech2text(phonenum):
                     for content in audio_generator
                 )
                 print(requests)
-                responses = client.streaming_recognize(streaming_config, requests, timeout = 5)
+                responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
                 # responses = client.streaming_recognize(streaming_config, requests)
                 print(responses)
                 # Now, put the transcription responses to use.
