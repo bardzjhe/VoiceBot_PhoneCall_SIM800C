@@ -31,6 +31,7 @@ config_phoneNumber = 51153639
 config_serialDeviceName = 'USB-SERIAL'
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
+audio_temp_folder = 'audio_temp/'
 
 
 class MicrophoneStream(object):
@@ -255,13 +256,19 @@ def text2speech(text, language_code):
         audio_config=audio_config
     )
 
+    isExist = os.path.exists(audio_temp_folder)
+    if not isExist:
+        # Create a new directory because it does not exist 
+        os.makedirs(audio_temp_folder)
+        print("The new directory is created!")
+
     date_string = datetime.now().strftime("%d%m%Y%H%M%S")
     # write response to the audio file
-    with open('audio_temp/result_'+date_string+'.mp3', 'wb') as output:
+    with open(audio_temp_folder+'result_'+date_string+'.mp3', 'wb') as output:
         output.write(response.audio_content)
 
     # Play the audio file to let the user hear the sound
-    pl = PlayMP3('audio_temp/result_'+date_string+'.mp3')
+    pl = PlayMP3(audio_temp_folder+'result_'+date_string+'.mp3')
     pl.play()
 
 # Play mp3 files, which is converted from the text using GCP API. 
@@ -280,10 +287,10 @@ class PlayMP3():
             time.sleep(1)
         mixer.music.stop()
         mixer.quit()
+        
         # delete all files inside folder audio_temp
-        dir = 'audio_temp/'
-        for f in os.listdir(dir):
-            os.remove(os.path.join(dir, f))
+        for f in os.listdir(audio_temp_folder):
+            os.remove(os.path.join(audio_temp_folder, f))
 
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
