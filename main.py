@@ -287,7 +287,7 @@ class PlayMP3():
             time.sleep(1)
         mixer.music.stop()
         mixer.quit()
-        
+
         # delete all files inside folder audio_temp
         for f in os.listdir(audio_temp_folder):
             os.remove(os.path.join(audio_temp_folder, f))
@@ -400,16 +400,10 @@ def calling(phonenum):
                 break
 
 def main():
-    # calling(config_phoneNumber) # Fill your telephone number
+    # calling(config_phoneNumber)
     
     # uncomment to test without phone
-
-    # test = True
-    # while 1:
-    #     if test == True:
-    #         # executor.submit(speech2text, config_phoneNumber)
-    #         speech2text(config_phoneNumber)
-    #         # test = False
+    # it is also used in altspace
     speech2text(config_phoneNumber)
     print("Done")
     os._exit(1)
