@@ -257,11 +257,11 @@ def text2speech(text, language_code):
 
     date_string = datetime.now().strftime("%d%m%Y%H%M%S")
     # write response to the audio file
-    with open('result_'+date_string+'.mp3', 'wb') as output:
+    with open('audio_temp/result_'+date_string+'.mp3', 'wb') as output:
         output.write(response.audio_content)
 
     # Play the audio file to let the user hear the sound
-    pl = PlayMP3('result_'+date_string+'.mp3')
+    pl = PlayMP3('audio_temp/result_'+date_string+'.mp3')
     pl.play()
 
 # Play mp3 files, which is converted from the text using GCP API. 
@@ -280,7 +280,10 @@ class PlayMP3():
             time.sleep(1)
         mixer.music.stop()
         mixer.quit()
-        os.remove(self._filename)
+        # delete all files inside folder audio_temp
+        dir = 'audio_temp/'
+        for f in os.listdir(dir):
+            os.remove(os.path.join(dir, f))
 
 def calling(phonenum):
     port_list = list(serial.tools.list_ports.comports())
