@@ -164,7 +164,7 @@ def listen_print_save_loop(responses, stream, phonenum):
         if result.language_code == "en-us" or result.language_code == "en-uk":
             print("What can I help you?")
             text2speech("What can I help you?", result.language_code)
-        elif result.language_code == "zh":
+        elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
             print("請問還有什麼可以幫到你?")
             text2speech("請問還有什麼可以幫你?", result.language_code)
         else:
