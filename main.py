@@ -27,8 +27,9 @@ CHUNK = int(RATE/10) # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
-config_phoneNumber = 51153639
 config_serialDeviceName = 'USB-SERIAL'
+config_phoneNumber = '51153639'
+phonenum = ''
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 audio_temp_folder = 'audio_temp/'
@@ -292,16 +293,18 @@ class PlayMP3():
         for f in os.listdir(audio_temp_folder):
             os.remove(os.path.join(audio_temp_folder, f))
 
-def calling(phonenum):
+def run_sim800c():
+    global phonenum
     port_list = list(serial.tools.list_ports.comports())
+    dialed = False
 
-    print("Debug info\nA works")
+    # print("Debug info\nA works")
     print("The port number is: " + str(len(port_list)))
     if len(port_list) == 0:
         print("\nno port can be used :(")
         exit(0)
     else:
-        print('\nB works')
+        # print('\nB works')
 # print all available port name
 #         for i in port_list:
 #             print(i)
@@ -311,11 +314,12 @@ def calling(phonenum):
             if str(i).find(config_serialDeviceName) != -1:
                 s = serial.Serial(i.device, 115200, timeout=0)
         #s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
-        print('\nC works')
+        # print('\nC works')
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
 
-        print("\nD works")
-        sio.write(f'AT+DDET=1\nATS0=2\nATE1\nAT+COLP=1\nATD{str(phonenum)};\n')
+        # print("\nD works")
+        # sio.write(f'AT+DDET=1\nATS0=2\nATE1\nAT+COLP=1\nATD{str(phonenum)};\n')
+        sio.write(f'AT+DDET=1\nATS0=2\nATE1\nAT+COLP=1\nAT+CLIP=1\n')
         ''' 
         AT+DDET=1: enable DTMF detection
 
@@ -331,8 +335,9 @@ def calling(phonenum):
         '''
 
         sio.flush()
-        print("\nE works")
-        print("Calling (If it cannot work for long, please use XCOM V2.0 to check)....")
+        # print("\nE works")
+        # print("Calling (If it cannot work for long, please use XCOM V2.0 to check)....")
+        print("Waiting for call (If it cannot work for long, please use XCOM V2.0 to check)....")
         while 1:
             # print(sio.readlines()) it leads to a big problem
             try:
@@ -387,9 +392,10 @@ def calling(phonenum):
 
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
+                dialed = False
+                # future.cancel()
                 # Stop audio recording after the end of the call
                 # executor.submit(audio_thread.stop)
-                break
 
             if (x.find('BUSY') != -1) | (x.find('NO ANSWER') != -1):
                 print("\nHe/She hangs up")
@@ -399,12 +405,31 @@ def calling(phonenum):
                 print("\nErrors occurr in SIM card (it's not China Mobile card or it arrears), \nor in other devices, \nor Card installation error")
                 break
 
+            if dialed == False:
+                if (x.find('+CLIP: "') != -1):
+                    phonenum = int(x[x.find('+CLIP: "')+8:x.find('+CLIP: "')+16])
+                    print(str(phonenum) + " calling in")
+                    sio.write('ATA\n')
+                    time.sleep(10)
+                    dialed = True
+                    print("\ndialed")
+                    executor.submit(speech2text, phonenum)
+
 def main():
-    # calling(config_phoneNumber)
-    
+    print("   _____ _____ __  __  ___   ___   ___   _____   ____   ____ _______ ")
+    print("  / ____|_   _|  \/  |/ _ \ / _ \ / _ \ / ____| |  _ \ / __ \__   __|")
+    print(" | (___   | | | \  / | (_) | | | | | | | |      | |_) | |  | | | |   ")
+    print("  \___ \  | | | |\/| |> _ <| | | | | | | |      |  _ <| |  | | | |   ")
+    print("  ____) |_| |_| |  | | (_) | |_| | |_| | |____  | |_) | |__| | | |   ")
+    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|   ")
+    print("")
+
+    run_sim800c()
+
     # uncomment to test without phone
     # it is also used in altspace
-    speech2text(config_phoneNumber)
+    # speech2text(config_phoneNumber)
+
     print("Done")
     os._exit(1)
 
