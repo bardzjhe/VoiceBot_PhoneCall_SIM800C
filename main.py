@@ -130,6 +130,8 @@ def AI_Enquiry(transcript, language_code, phonenum):
             return "對唔住，我唔知你講咩。"
 
 def listen_print_save_loop(responses, stream, phonenum):
+    # print("called!!!")
+    # print(responses[0].results)
     """Iterates through server responses, then prints and saves them.
 
     The responses passed is a generator that will block until a response
@@ -311,6 +313,7 @@ class PlayMP3():
 
 def run_sim800c():
     global phonenum, stop_signal
+    language_code = "yue-Hant-HK"
     port_list = list(serial.tools.list_ports.comports())
     dialed = False
 
@@ -371,37 +374,37 @@ def run_sim800c():
                 executor.submit(speech2text, phonenum)
 
             if x.find('+DTMF: 1') != -1:
-                string = AI_Enquiry("1號", phonenum)
+                string = AI_Enquiry("1號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 2') != -1:
-                string = AI_Enquiry("2號", phonenum)
+                string = AI_Enquiry("2號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 3') != -1:
-                string = AI_Enquiry("3號", phonenum)
+                string = AI_Enquiry("3號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 4') != -1:
-                string = AI_Enquiry("4號", phonenum)
+                string = AI_Enquiry("4號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 5') != -1:
-                string = AI_Enquiry("5號", phonenum)
+                string = AI_Enquiry("5號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 6') != -1:
-                string = AI_Enquiry("6號", phonenum)
+                string = AI_Enquiry("6號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 7') != -1:
-                string = AI_Enquiry("7號", phonenum)
+                string = AI_Enquiry("7號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 8') != -1:
-                string = AI_Enquiry("8號", phonenum)
+                string = AI_Enquiry("8號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 9') != -1:
-                string = AI_Enquiry("9號", phonenum)
+                string = AI_Enquiry("9號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: 0') != -1:
-                string = AI_Enquiry("0號", phonenum)
+                string = AI_Enquiry("0號", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: #') != -1:
-                string = AI_Enquiry("你好", phonenum)
+                string = AI_Enquiry("你好", language_code, phonenum)
                 executor.submit(text2speech, string, "yue-Hant-HK")
             elif x.find('+DTMF: *') != -1:
                 print("\nDTMF:*")
