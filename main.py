@@ -105,7 +105,7 @@ class MicrophoneStream(object):
 
 
 
-def AI_Enquiry(transcript, phonenum):
+def AI_Enquiry(transcript, language_code, phonenum):
      # get result from kimia AI 
     # 使用 GET 方式下載普通網頁
     
@@ -119,7 +119,15 @@ def AI_Enquiry(transcript, phonenum):
 
     # 輸出網頁 HTML 原始碼
     print(r.text)
-    return r.text
+    if r.text != "":
+        return r.text
+    else:
+        if language_code == "en-us" or language_code == "en-uk":
+            return "Sorry, I don't understand your question."
+        elif language_code == "zh" or language_code == "cmn-hans-cn" or language_code == "zh-TW":
+            return "對不起，我不明白你的問題。"
+        else:
+            return "對唔住，我唔知你講咩。"
 
 def listen_print_save_loop(responses, stream, phonenum):
     """Iterates through server responses, then prints and saves them.
@@ -159,19 +167,19 @@ def listen_print_save_loop(responses, stream, phonenum):
         stream.closed = True  # off mic
 
         # get result from kimia AI
-        string = AI_Enquiry(transcript, phonenum)
+        string = AI_Enquiry(transcript, result.language_code, phonenum)
 
         # executor.submit(text2speech, str(r.text), result.language_code)
         text2speech(string, result.language_code)
         print(result.language_code)
         if result.language_code == "en-us" or result.language_code == "en-uk":
-            print("reply: What can I help you?")
+            print("Reply: What can I help you?")
             text2speech("What can I help you?", result.language_code)
         elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
-            print("reply: 請問還有什麼可以幫到你?")
+            print("Reply: 請問還有什麼可以幫到你?")
             text2speech("請問還有什麼可以幫你?", result.language_code)
         else:
-            print("reply: 請問重有咩可以幫你?")
+            print("Reply: 請問重有咩可以幫你?")
             text2speech("請問重有咩可以幫你?", result.language_code)
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
@@ -219,6 +227,7 @@ def speech2text(phonenum):
         config=config, interim_results=False, single_utterance=True
     )
 
+    # text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢? 請輸入數字選擇故障類別: 1. 前臺電腦故障 2. 前臺電腦週邊設備故障 3. 後臺電腦故障 4. 後臺電腦週邊設備故障 5. 手持, 顯示幕或其他故障", "yue-Hant-HK")
     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
 
     while True:
@@ -232,8 +241,8 @@ def speech2text(phonenum):
                         for content in audio_generator
                     )
                     print(requests)
-                    responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
-                    # responses = client.streaming_recognize(streaming_config, requests)
+                    # responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
+                    responses = client.streaming_recognize(streaming_config, requests)
                     print(responses)
                     # Now, put the transcription responses to use.
                     listen_print_save_loop(responses, stream, phonenum)
@@ -420,7 +429,9 @@ def run_sim800c():
                     time.sleep(10)
                     dialed = True
                     print("\ndialed")
+                    
                     executor.submit(speech2text, phonenum)
+                    # executor.submit(speech2text, phonenum)
 
 def main():
     print("   _____ _____ __  __  ___   ___   ___   _____   ____   ____ _______ ")
