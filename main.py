@@ -30,6 +30,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.
 config_serialDeviceName = 'USB-SERIAL'
 config_phoneNumber = '51153639'
 phonenum = ''
+stop_signal = False
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 audio_temp_folder = 'audio_temp/'
@@ -200,6 +201,7 @@ def speech2text(phonenum):
     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
     secondary_language1 = "en-US"
     secondary_language2 = "zh"
+    global stop_signal
 
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
@@ -216,25 +218,30 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=False, single_utterance=True
     )
-    # text2speech("請說出你的問題", "yue-Hant-HK")
+    
     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
+
     while True:
-        try:
-            # text2speech("請說出你的問題", "yue-Hant-HK")
-            with MicrophoneStream(RATE, CHUNK) as stream:
-                audio_generator = stream.generator()
-                requests = (
-                    speech.StreamingRecognizeRequest(streaming_config=streaming_config, audio_content=content)
-                    for content in audio_generator
-                )
-                print(requests)
-                responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
-                # responses = client.streaming_recognize(streaming_config, requests)
-                print(responses)
-                # Now, put the transcription responses to use.
-                listen_print_save_loop(responses, stream, phonenum)
-        except:
-            continue
+        if stop_signal == False:
+            try:
+                # text2speech("請說出你的問題", "yue-Hant-HK")
+                with MicrophoneStream(RATE, CHUNK) as stream:
+                    audio_generator = stream.generator()
+                    requests = (
+                        speech.StreamingRecognizeRequest(streaming_config=streaming_config, audio_content=content)
+                        for content in audio_generator
+                    )
+                    print(requests)
+                    responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
+                    # responses = client.streaming_recognize(streaming_config, requests)
+                    print(responses)
+                    # Now, put the transcription responses to use.
+                    listen_print_save_loop(responses, stream, phonenum)
+            except:
+                continue
+        else:
+            stop_signal = False
+            break
 
 
 def text2speech(text, language_code):
@@ -294,7 +301,7 @@ class PlayMP3():
             os.remove(os.path.join(audio_temp_folder, f))
 
 def run_sim800c():
-    global phonenum
+    global phonenum, stop_signal
     port_list = list(serial.tools.list_ports.comports())
     dialed = False
 
@@ -393,7 +400,7 @@ def run_sim800c():
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
                 dialed = False
-                # future.cancel()
+                stop_signal = True
                 # Stop audio recording after the end of the call
                 # executor.submit(audio_thread.stop)
 
