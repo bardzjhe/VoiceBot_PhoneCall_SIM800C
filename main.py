@@ -106,7 +106,7 @@ class MicrophoneStream(object):
 
 
 def AI_Enquiry(transcript, language_code, phonenum):
-     # get result from kimia AI 
+    # get result from kimia AI 
     # 使用 GET 方式下載普通網頁
     
     requestURL = 'https://kimia.toyokoexpress.com/chat/?text='+ transcript +'&kiosk_type=17&session=' + str(phonenum)
