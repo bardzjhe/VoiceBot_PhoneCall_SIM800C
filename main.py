@@ -22,8 +22,9 @@ from datetime import datetime
 import requests
 
 # Audio recording parameters
-RATE = 16000
-CHUNK = int(RATE/10) # 100ms
+STREAMING_LIMIT = 3600000  # 1 hour, 1 min is 60000
+SAMPLE_RATE = 16000
+CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
@@ -36,38 +37,55 @@ speech_client = speech.SpeechClient()
 audio_temp_folder = 'audio_temp/'
 
 
-class MicrophoneStream(object):
+RED = "\033[0;31m"
+GREEN = "\033[0;32m"
+YELLOW = "\033[0;33m"
+
+
+def get_current_time():
+    """Return Current Time in MS."""
+
+    return int(round(time.time() * 1000))
+
+class ResumableMicrophoneStream:
     """Opens a recording stream as a generator yielding the audio chunks."""
 
-    def __init__(self, rate, chunk):
+    def __init__(self, rate, chunk_size):
         self._rate = rate
-        self._chunk = chunk
-
-        # Create a thread-safe buffer of audio data
+        self.chunk_size = chunk_size
+        self._num_channels = 1
         self._buff = queue.Queue()
         self.closed = True
-
-    def __enter__(self):
+        self.start_time = get_current_time()
+        self.restart_counter = 0
+        self.audio_input = []
+        self.last_audio_input = []
+        self.result_end_time = 0
+        self.is_final_end_time = 0
+        self.final_request_end_time = 0
+        self.bridging_offset = 0
+        self.last_transcript_was_final = False
+        self.new_stream = True
         self._audio_interface = pyaudio.PyAudio()
         self._audio_stream = self._audio_interface.open(
             format=pyaudio.paInt16,
-            # The API currently only supports 1-channel (mono) audio
-            # https://goo.gl/z757pE
-            channels=1,
+            channels=self._num_channels,
             rate=self._rate,
             input=True,
-            frames_per_buffer=self._chunk,
+            frames_per_buffer=self.chunk_size,
             # Run the audio stream asynchronously to fill the buffer object.
             # This is necessary so that the input device's buffer doesn't
             # overflow while the calling thread makes network requests, etc.
             stream_callback=self._fill_buffer,
         )
 
-        self.closed = False
+    def __enter__(self):
 
+        self.closed = False
         return self
 
     def __exit__(self, type, value, traceback):
+
         self._audio_stream.stop_stream()
         self._audio_stream.close()
         self.closed = True
@@ -76,33 +94,67 @@ class MicrophoneStream(object):
         self._buff.put(None)
         self._audio_interface.terminate()
 
-    def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
+    def _fill_buffer(self, in_data, *args, **kwargs):
         """Continuously collect data from the audio stream, into the buffer."""
+
         self._buff.put(in_data)
         return None, pyaudio.paContinue
 
     def generator(self):
+        """Stream Audio from microphone to API and to local buffer"""
+
         while not self.closed:
+            data = []
+
+            if self.new_stream and self.last_audio_input:
+
+                chunk_time = STREAMING_LIMIT / len(self.last_audio_input)
+
+                if chunk_time != 0:
+
+                    if self.bridging_offset < 0:
+                        self.bridging_offset = 0
+
+                    if self.bridging_offset > self.final_request_end_time:
+                        self.bridging_offset = self.final_request_end_time
+
+                    chunks_from_ms = round(
+                        (self.final_request_end_time - self.bridging_offset)
+                        / chunk_time
+                    )
+
+                    self.bridging_offset = round(
+                        (len(self.last_audio_input) - chunks_from_ms) * chunk_time
+                    )
+
+                    for i in range(chunks_from_ms, len(self.last_audio_input)):
+                        data.append(self.last_audio_input[i])
+
+                self.new_stream = False
+
             # Use a blocking get() to ensure there's at least one chunk of
             # data, and stop iteration if the chunk is None, indicating the
             # end of the audio stream.
             chunk = self._buff.get()
+            self.audio_input.append(chunk)
+
             if chunk is None:
                 return
-            data = [chunk]
-
+            data.append(chunk)
             # Now consume whatever other data's still buffered.
             while True:
                 try:
                     chunk = self._buff.get(block=False)
+
                     if chunk is None:
                         return
                     data.append(chunk)
+                    self.audio_input.append(chunk)
+
                 except queue.Empty:
                     break
 
             yield b"".join(data)
-
 
 
 def AI_Enquiry(transcript, language_code, phonenum):
@@ -132,83 +184,7 @@ def AI_Enquiry(transcript, language_code, phonenum):
         else:
             return "對唔住，我唔知你講咩。"
 
-# def listen_print_save_loop(responses, stream, phonenum):
-#     # print("called!!!")
-#     # print(responses[0].results)
-#     """Iterates through server responses, then prints and saves them.
-
-#     The responses passed is a generator that will block until a response
-#     is provided by the server.
-
-#     Each response may contain multiple results, and each result may contain
-#     multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
-#     print/save only the transcription for the top alternative of the top result.
-    
-#     In this case, responses are provided for interim results as well. If the
-#     response is an interim one, print a line feed at the end of it, to allow
-#     the next result to overwrite it, until the response is a final one. For the
-#     final one, print a newline to preserve the finalized transcription.
-#     """
-#     num_chars_printed = 0
-#     for response in responses:
-#         if not response.results:
-#             continue
-
-#         # The `results` list is consecutive. For streaming, we only care about
-#         # the first result being considered, since once it's `is_final`, it
-#         # moves on to considering the next utterance.
-#         result = response.results[0]
-#         if not result.alternatives:
-#             continue
-
-#         # Display the transcription of the top alternative.
-#         transcript = result.alternatives[0].transcript
-
-#         # Display interim results, but with a carriage return at the end of the
-#         # line, so subsequent lines will overwrite them.
-#         #
-#         # If the previous result was longer than this one, we need to print
-#         # some extra spaces to overwrite the previous result
-#         stream.closed = True  # off mic
-
-#         # get result from kimia AI
-#         string = AI_Enquiry(transcript, result.language_code, phonenum)
-
-#         # executor.submit(text2speech, str(r.text), result.language_code)
-#         text2speech(string, result.language_code)
-#         print(result.language_code)
-#         if result.language_code == "en-us" or result.language_code == "en-uk":
-#             print("Reply: What can I help you?")
-#             text2speech("What can I help you?", result.language_code)
-#         elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
-#             print("Reply: 請問還有什麼可以幫到你?")
-#             text2speech("請問還有什麼可以幫你?", result.language_code)
-#         else:
-#             print("Reply: 請問重有咩可以幫你?")
-#             text2speech("請問重有咩可以幫你?", result.language_code)
-
-#         overwrite_chars = " " * (num_chars_printed - len(transcript))
-
-#         if not result.is_final:
-#             sys.stdout.write(transcript + overwrite_chars + "\r")
-#             sys.stdout.flush()
-#             num_chars_printed = len(transcript)
-
-#         else:
-#             print(f"Transcript: {transcript + overwrite_chars}")
-#             print(f"Language code: {result.language_code}")
-#             print(f"Confidence: {result.alternatives[0].confidence:.0%}")
-
-#             # Exit recognition if any of the transcribed phrases could be
-#             # one of our keywords.
-#             if re.search(r"\b(exit|quit)\b", transcript, re.I):
-#                 print("Exiting..")
-#                 break
-
-#             num_chars_printed = 0
-
-
-def listen_print_loop(responses, phonenum):
+def listen_print_loop(responses, stream, phonenum):
     """Iterates through server responses and prints them.
 
     The responses passed is a generator that will block until a response
@@ -223,37 +199,48 @@ def listen_print_loop(responses, phonenum):
     the next result to overwrite it, until the response is a final one. For the
     final one, print a newline to preserve the finalized transcription.
     """
-    num_chars_printed = 0
+
     for response in responses:
+
+        if get_current_time() - stream.start_time > STREAMING_LIMIT:
+            stream.start_time = get_current_time()
+            break
+
         if not response.results:
             continue
 
-        # The `results` list is consecutive. For streaming, we only care about
-        # the first result being considered, since once it's `is_final`, it
-        # moves on to considering the next utterance.
         result = response.results[0]
+
         if not result.alternatives:
             continue
 
-        # Display the transcription of the top alternative.
         transcript = result.alternatives[0].transcript
 
+        result_seconds = 0
+        result_micros = 0
+
+        if result.result_end_time.seconds:
+            result_seconds = result.result_end_time.seconds
+
+        if result.result_end_time.microseconds:
+            result_micros = result.result_end_time.microseconds
+
+        stream.result_end_time = int((result_seconds * 1000) + (result_micros / 1000))
+
+        corrected_time = (
+            stream.result_end_time
+            - stream.bridging_offset
+            + (STREAMING_LIMIT * stream.restart_counter)
+        )
         # Display interim results, but with a carriage return at the end of the
         # line, so subsequent lines will overwrite them.
-        #
-        # If the previous result was longer than this one, we need to print
-        # some extra spaces to overwrite the previous result
-        overwrite_chars = " " * (num_chars_printed - len(transcript))
 
-        if not result.is_final:
-            sys.stdout.write("User speech: " + transcript + overwrite_chars + "\r")
-            sys.stdout.flush()
+        if result.is_final:
 
-            num_chars_printed = len(transcript)
-
-        else:
-            print("User speech: " + transcript + overwrite_chars)
-            string = AI_Enquiry(transcript + overwrite_chars, result.language_code, phonenum)
+            sys.stdout.write(GREEN)
+            sys.stdout.write("\033[K")
+            sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
+            string = AI_Enquiry(transcript, result.language_code, phonenum)
             text2speech(string, result.language_code)
 
             if result.language_code == "en-us" or result.language_code == "en-uk":
@@ -266,80 +253,127 @@ def listen_print_loop(responses, phonenum):
                 print("Reply: 請問重有咩可以幫你?")
                 text2speech("請問重有咩可以幫你?", result.language_code)
 
+            stream.is_final_end_time = stream.result_end_time
+            stream.last_transcript_was_final = True
+
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
             if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                print("Exiting..")
+                sys.stdout.write(YELLOW)
+                sys.stdout.write("Exiting...\n")
+                stream.closed = True
                 break
 
-            num_chars_printed = 0
+        else:
+            sys.stdout.write(RED)
+            sys.stdout.write("\033[K")
+            sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
 
+            stream.last_transcript_was_final = False
 
+# def speech2text(phonenum):
+#     # See http://g.co/cloud/speech/docs/languages
+#     # for a list of supported languages.
+#     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
+#     secondary_language1 = "en-US"
+#     secondary_language2 = "zh"
+#     global stop_signal
 
+#     client = speech.SpeechClient()
+#     config = speech.RecognitionConfig(
+#         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+#         sample_rate_hertz=RATE,
+#         speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
+#         language_code=primary_language,
+#         alternative_language_codes=[secondary_language1, secondary_language2],
+#         use_enhanced=True,
+#         # A model must be specified to use enhanced model.
+#         model="command_and_search"
+#     )
 
+#     streaming_config = speech.StreamingRecognitionConfig(
+#         config=config, interim_results=True
+#     )
 
+#     # text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢? 請輸入數字選擇故障類別: 1. 前臺電腦故障 2. 前臺電腦週邊設備故障 3. 後臺電腦故障 4. 後臺電腦週邊設備故障 5. 手持, 顯示幕或其他故障", "yue-Hant-HK")
+#     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
+
+#     with MicrophoneStream(RATE, CHUNK) as stream:
+#         audio_generator = stream.generator()
+#         requests = (
+#             speech.StreamingRecognizeRequest(audio_content=content)
+#             for content in audio_generator
+#         )
+
+#         responses = client.streaming_recognize(streaming_config, requests)
+
+#         # Now, put the transcription responses to use.
+#         listen_print_loop(responses, phonenum)
 
 
 
 def speech2text(phonenum):
-    # See http://g.co/cloud/speech/docs/languages
-    # for a list of supported languages.
     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
     secondary_language1 = "en-US"
     secondary_language2 = "zh"
-    global stop_signal
+    """start bidirectional streaming from microphone input to speech API"""
 
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=RATE,
+        sample_rate_hertz=SAMPLE_RATE,
         speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
         language_code=primary_language,
         alternative_language_codes=[secondary_language1, secondary_language2],
-        use_enhanced=True,
-        # A model must be specified to use enhanced model.
-        model="command_and_search"
+        max_alternatives=1,
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=True
     )
 
-    # text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢? 請輸入數字選擇故障類別: 1. 前臺電腦故障 2. 前臺電腦週邊設備故障 3. 後臺電腦故障 4. 後臺電腦週邊設備故障 5. 手持, 顯示幕或其他故障", "yue-Hant-HK")
+    mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+    print(mic_manager.chunk_size)
+    sys.stdout.write(YELLOW)
+    sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
+    sys.stdout.write("End (ms)       Transcript Results/Status\n")
+    sys.stdout.write("=====================================================\n")
+
     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
 
-    # while True:
-    #     if stop_signal == False:
-    #         try:
-    #             # text2speech("請說出你的問題", "yue-Hant-HK")
-    #             with MicrophoneStream(RATE, CHUNK) as stream:
-    #                 audio_generator = stream.generator()
-    #                 requests = (
-    #                     speech.StreamingRecognizeRequest(streaming_config=streaming_config, audio_content=content)
-    #                     for content in audio_generator
-    #                 )
-    #                 print(requests)
-    #                 # responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
-    #                 responses = client.streaming_recognize(streaming_config, requests)
-    #                 print(responses)
-    #                 # Now, put the transcription responses to use.
-    #                 listen_print_save_loop(responses, stream, phonenum)
-    #         except:
-    #             continue
-    #     else:
-    #         stop_signal = False
-    #         break
-    with MicrophoneStream(RATE, CHUNK) as stream:
-        audio_generator = stream.generator()
-        requests = (
-            speech.StreamingRecognizeRequest(audio_content=content)
-            for content in audio_generator
-        )
+    with mic_manager as stream:
 
-        responses = client.streaming_recognize(streaming_config, requests)
+        while not stream.closed:
+            sys.stdout.write(YELLOW)
+            sys.stdout.write(
+                "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
+            )
 
-        # Now, put the transcription responses to use.
-        listen_print_loop(responses, phonenum)
+            stream.audio_input = []
+            audio_generator = stream.generator()
+
+            requests = (
+                speech.StreamingRecognizeRequest(audio_content=content)
+                for content in audio_generator
+            )
+
+            responses = client.streaming_recognize(streaming_config, requests)
+
+            # Now, put the transcription responses to use.
+            listen_print_loop(responses, stream, phonenum)
+
+            if stream.result_end_time > 0:
+                stream.final_request_end_time = stream.is_final_end_time
+            stream.result_end_time = 0
+            stream.last_audio_input = []
+            stream.last_audio_input = stream.audio_input
+            stream.audio_input = []
+            stream.restart_counter = stream.restart_counter + 1
+
+            if not stream.last_transcript_was_final:
+                sys.stdout.write("\n")
+            stream.new_stream = True
+
 
 
 def text2speech(text, language_code):
@@ -529,7 +563,7 @@ def main():
     print(" | (___   | | | \  / | (_) | | | | | | | |      | |_) | |  | | | |   ")
     print("  \___ \  | | | |\/| |> _ <| | | | | | | |      |  _ <| |  | | | |   ")
     print("  ____) |_| |_| |  | | (_) | |_| | |_| | |____  | |_) | |__| | | |   ")
-    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|   ")
+    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|     Ver0.1 beta")
     print("")
 
     # run_sim800c()
