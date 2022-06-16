@@ -115,10 +115,13 @@ def AI_Enquiry(transcript, language_code, phonenum):
 
     # 檢查狀態碼是否 OK
     if r.status_code == requests.codes.ok:
-        print("OK")
+        print("Response received!")
 
     # 輸出網頁 HTML 原始碼
+    print("-----------Kimia AI Response-----------")
     print(r.text)
+    print("---------------------------------------")
+    
     if r.text != "":
         return r.text
     else:
@@ -129,18 +132,92 @@ def AI_Enquiry(transcript, language_code, phonenum):
         else:
             return "對唔住，我唔知你講咩。"
 
-def listen_print_save_loop(responses, stream, phonenum):
-    # print("called!!!")
-    # print(responses[0].results)
-    """Iterates through server responses, then prints and saves them.
+# def listen_print_save_loop(responses, stream, phonenum):
+#     # print("called!!!")
+#     # print(responses[0].results)
+#     """Iterates through server responses, then prints and saves them.
+
+#     The responses passed is a generator that will block until a response
+#     is provided by the server.
+
+#     Each response may contain multiple results, and each result may contain
+#     multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
+#     print/save only the transcription for the top alternative of the top result.
+    
+#     In this case, responses are provided for interim results as well. If the
+#     response is an interim one, print a line feed at the end of it, to allow
+#     the next result to overwrite it, until the response is a final one. For the
+#     final one, print a newline to preserve the finalized transcription.
+#     """
+#     num_chars_printed = 0
+#     for response in responses:
+#         if not response.results:
+#             continue
+
+#         # The `results` list is consecutive. For streaming, we only care about
+#         # the first result being considered, since once it's `is_final`, it
+#         # moves on to considering the next utterance.
+#         result = response.results[0]
+#         if not result.alternatives:
+#             continue
+
+#         # Display the transcription of the top alternative.
+#         transcript = result.alternatives[0].transcript
+
+#         # Display interim results, but with a carriage return at the end of the
+#         # line, so subsequent lines will overwrite them.
+#         #
+#         # If the previous result was longer than this one, we need to print
+#         # some extra spaces to overwrite the previous result
+#         stream.closed = True  # off mic
+
+#         # get result from kimia AI
+#         string = AI_Enquiry(transcript, result.language_code, phonenum)
+
+#         # executor.submit(text2speech, str(r.text), result.language_code)
+#         text2speech(string, result.language_code)
+#         print(result.language_code)
+#         if result.language_code == "en-us" or result.language_code == "en-uk":
+#             print("Reply: What can I help you?")
+#             text2speech("What can I help you?", result.language_code)
+#         elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
+#             print("Reply: 請問還有什麼可以幫到你?")
+#             text2speech("請問還有什麼可以幫你?", result.language_code)
+#         else:
+#             print("Reply: 請問重有咩可以幫你?")
+#             text2speech("請問重有咩可以幫你?", result.language_code)
+
+#         overwrite_chars = " " * (num_chars_printed - len(transcript))
+
+#         if not result.is_final:
+#             sys.stdout.write(transcript + overwrite_chars + "\r")
+#             sys.stdout.flush()
+#             num_chars_printed = len(transcript)
+
+#         else:
+#             print(f"Transcript: {transcript + overwrite_chars}")
+#             print(f"Language code: {result.language_code}")
+#             print(f"Confidence: {result.alternatives[0].confidence:.0%}")
+
+#             # Exit recognition if any of the transcribed phrases could be
+#             # one of our keywords.
+#             if re.search(r"\b(exit|quit)\b", transcript, re.I):
+#                 print("Exiting..")
+#                 break
+
+#             num_chars_printed = 0
+
+
+def listen_print_loop(responses, phonenum):
+    """Iterates through server responses and prints them.
 
     The responses passed is a generator that will block until a response
     is provided by the server.
 
     Each response may contain multiple results, and each result may contain
     multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
-    print/save only the transcription for the top alternative of the top result.
-    
+    print only the transcription for the top alternative of the top result.
+
     In this case, responses are provided for interim results as well. If the
     response is an interim one, print a line feed at the end of it, to allow
     the next result to overwrite it, until the response is a final one. For the
@@ -166,35 +243,28 @@ def listen_print_save_loop(responses, stream, phonenum):
         #
         # If the previous result was longer than this one, we need to print
         # some extra spaces to overwrite the previous result
-        stream.closed = True  # off mic
-
-        # get result from kimia AI
-        string = AI_Enquiry(transcript, result.language_code, phonenum)
-
-        # executor.submit(text2speech, str(r.text), result.language_code)
-        text2speech(string, result.language_code)
-        print(result.language_code)
-        if result.language_code == "en-us" or result.language_code == "en-uk":
-            print("Reply: What can I help you?")
-            text2speech("What can I help you?", result.language_code)
-        elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
-            print("Reply: 請問還有什麼可以幫到你?")
-            text2speech("請問還有什麼可以幫你?", result.language_code)
-        else:
-            print("Reply: 請問重有咩可以幫你?")
-            text2speech("請問重有咩可以幫你?", result.language_code)
-
         overwrite_chars = " " * (num_chars_printed - len(transcript))
 
         if not result.is_final:
-            sys.stdout.write(transcript + overwrite_chars + "\r")
+            sys.stdout.write("User speech: " + transcript + overwrite_chars + "\r")
             sys.stdout.flush()
+
             num_chars_printed = len(transcript)
 
         else:
-            print(f"Transcript: {transcript + overwrite_chars}")
-            print(f"Language code: {result.language_code}")
-            print(f"Confidence: {result.alternatives[0].confidence:.0%}")
+            print("User speech: " + transcript + overwrite_chars)
+            string = AI_Enquiry(transcript + overwrite_chars, result.language_code, phonenum)
+            text2speech(string, result.language_code)
+
+            if result.language_code == "en-us" or result.language_code == "en-uk":
+                print("Reply: What can I help you?")
+                text2speech("What can I help you?", result.language_code)
+            elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
+                print("Reply: 請問還有什麼可以幫到你?")
+                text2speech("請問還有什麼可以幫你?", result.language_code)
+            else:
+                print("Reply: 請問重有咩可以幫你?")
+                text2speech("請問重有咩可以幫你?", result.language_code)
 
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
@@ -203,6 +273,12 @@ def listen_print_save_loop(responses, stream, phonenum):
                 break
 
             num_chars_printed = 0
+
+
+
+
+
+
 
 
 def speech2text(phonenum):
@@ -226,33 +302,44 @@ def speech2text(phonenum):
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=False, single_utterance=True
+        config=config, interim_results=True
     )
 
     # text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢? 請輸入數字選擇故障類別: 1. 前臺電腦故障 2. 前臺電腦週邊設備故障 3. 後臺電腦故障 4. 後臺電腦週邊設備故障 5. 手持, 顯示幕或其他故障", "yue-Hant-HK")
     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
 
-    while True:
-        if stop_signal == False:
-            try:
-                # text2speech("請說出你的問題", "yue-Hant-HK")
-                with MicrophoneStream(RATE, CHUNK) as stream:
-                    audio_generator = stream.generator()
-                    requests = (
-                        speech.StreamingRecognizeRequest(streaming_config=streaming_config, audio_content=content)
-                        for content in audio_generator
-                    )
-                    print(requests)
-                    # responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
-                    responses = client.streaming_recognize(streaming_config, requests)
-                    print(responses)
-                    # Now, put the transcription responses to use.
-                    listen_print_save_loop(responses, stream, phonenum)
-            except:
-                continue
-        else:
-            stop_signal = False
-            break
+    # while True:
+    #     if stop_signal == False:
+    #         try:
+    #             # text2speech("請說出你的問題", "yue-Hant-HK")
+    #             with MicrophoneStream(RATE, CHUNK) as stream:
+    #                 audio_generator = stream.generator()
+    #                 requests = (
+    #                     speech.StreamingRecognizeRequest(streaming_config=streaming_config, audio_content=content)
+    #                     for content in audio_generator
+    #                 )
+    #                 print(requests)
+    #                 # responses = client.streaming_recognize(streaming_config, requests, timeout = 7)
+    #                 responses = client.streaming_recognize(streaming_config, requests)
+    #                 print(responses)
+    #                 # Now, put the transcription responses to use.
+    #                 listen_print_save_loop(responses, stream, phonenum)
+    #         except:
+    #             continue
+    #     else:
+    #         stop_signal = False
+    #         break
+    with MicrophoneStream(RATE, CHUNK) as stream:
+        audio_generator = stream.generator()
+        requests = (
+            speech.StreamingRecognizeRequest(audio_content=content)
+            for content in audio_generator
+        )
+
+        responses = client.streaming_recognize(streaming_config, requests)
+
+        # Now, put the transcription responses to use.
+        listen_print_loop(responses, phonenum)
 
 
 def text2speech(text, language_code):

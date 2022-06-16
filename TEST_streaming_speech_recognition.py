@@ -140,6 +140,7 @@ def listen_print_loop(responses):
 
 
 def main():
+    print("test")
     # See http://g.co/cloud/speech/docs/languages
     # for a list of supported languages.
     language_code = "yue-Hant-HK"  # a BCP-47 language tag
@@ -170,3 +171,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # print("test")
