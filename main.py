@@ -19,7 +19,7 @@ from six.moves import queue
 from datetime import datetime
 
 
-# mute mic function
+# ------------ for mute mic function-----------------
 import win32api
 import win32gui
 
@@ -246,6 +246,7 @@ def listen_print_loop(responses, stream, phonenum):
         # line, so subsequent lines will overwrite them.
 
         if result.is_final:
+            # mute mic
             win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             sys.stdout.write(GREEN)
@@ -264,6 +265,7 @@ def listen_print_loop(responses, stream, phonenum):
                 print("Reply: 請問重有咩可以幫你?")
                 text2speech("請問重有咩可以幫你?", result.language_code)
                 
+            # unmute mic
             win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             stream.is_final_end_time = stream.result_end_time
