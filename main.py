@@ -28,7 +28,7 @@ CHUNK = int(RATE/10) # 100ms
 executor = ThreadPoolExecutor(max_workers=16)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
 config_serialDeviceName = 'USB-SERIAL'
-config_phoneNumber = '51153639'
+config_phoneNumber = 51153639
 phonenum = ''
 stop_signal = False
 client = texttospeech.TextToSpeechClient()
@@ -445,11 +445,11 @@ def main():
     print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|   ")
     print("")
 
-    run_sim800c()
+    # run_sim800c()
 
     # uncomment to test without phone
     # it is also used in altspace
-    # speech2text(config_phoneNumber)
+    speech2text(config_phoneNumber)
 
     print("Done")
     os._exit(1)
