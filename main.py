@@ -18,11 +18,21 @@ from google.cloud import speech
 from six.moves import queue
 from datetime import datetime
 
+
+# mute mic function
+import win32api
+import win32gui
+
+WM_APPCOMMAND = 0x319
+APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
+
+hwnd_active = win32gui.GetForegroundWindow()
+
 # 引入 requests 模組
 import requests
 
 # Audio recording parameters
-STREAMING_LIMIT = 3600000  # 1 hour, 1 min is 60000
+STREAMING_LIMIT = 240000  # 4 minutes
 SAMPLE_RATE = 16000
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
@@ -236,6 +246,7 @@ def listen_print_loop(responses, stream, phonenum):
         # line, so subsequent lines will overwrite them.
 
         if result.is_final:
+            win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             sys.stdout.write(GREEN)
             sys.stdout.write("\033[K")
@@ -252,6 +263,8 @@ def listen_print_loop(responses, stream, phonenum):
             else:
                 print("Reply: 請問重有咩可以幫你?")
                 text2speech("請問重有咩可以幫你?", result.language_code)
+                
+            win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
