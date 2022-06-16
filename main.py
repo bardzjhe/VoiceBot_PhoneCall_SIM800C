@@ -165,13 +165,13 @@ def listen_print_save_loop(responses, stream, phonenum):
         text2speech(string, result.language_code)
         print(result.language_code)
         if result.language_code == "en-us" or result.language_code == "en-uk":
-            print("What can I help you?")
+            print("reply: What can I help you?")
             text2speech("What can I help you?", result.language_code)
         elif result.language_code == "zh" or result.language_code == "cmn-hans-cn" or result.language_code == "zh-TW":
-            print("請問還有什麼可以幫到你?")
+            print("reply: 請問還有什麼可以幫到你?")
             text2speech("請問還有什麼可以幫你?", result.language_code)
         else:
-            print("請問重有咩可以幫你?")
+            print("reply: 請問重有咩可以幫你?")
             text2speech("請問重有咩可以幫你?", result.language_code)
 
         overwrite_chars = " " * (num_chars_printed - len(transcript))
@@ -218,7 +218,7 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=False, single_utterance=True
     )
-    
+
     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
 
     while True:
@@ -415,7 +415,7 @@ def run_sim800c():
             if dialed == False:
                 if (x.find('+CLIP: "') != -1):
                     phonenum = int(x[x.find('+CLIP: "')+8:x.find('+CLIP: "')+16])
-                    print(str(phonenum) + " calling in")
+                    print(str(phonenum) + " called in")
                     sio.write('ATA\n')
                     time.sleep(10)
                     dialed = True
