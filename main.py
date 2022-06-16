@@ -19,7 +19,7 @@ from six.moves import queue
 from datetime import datetime
 
 
-# ------------ for mute mic function-----------------
+# ==============for mute mic function================
 import win32api
 import win32gui
 
@@ -27,8 +27,8 @@ WM_APPCOMMAND = 0x319
 APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
 
 hwnd_active = win32gui.GetForegroundWindow()
+# ===================================================
 
-# 引入 requests 模組
 import requests
 
 # Audio recording parameters
@@ -264,7 +264,7 @@ def listen_print_loop(responses, stream, phonenum):
             else:
                 print("Reply: 請問重有咩可以幫你?")
                 text2speech("請問重有咩可以幫你?", result.language_code)
-                
+
             # unmute mic
             win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
