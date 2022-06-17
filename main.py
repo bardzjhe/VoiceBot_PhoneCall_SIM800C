@@ -166,7 +166,6 @@ class ResumableMicrophoneStream:
 
             yield b"".join(data)
 
-
 def AI_Enquiry(transcript, language_code, phonenum):
     # get result from kimia AI 
     # 使用 GET 方式下載普通網頁
@@ -285,46 +284,6 @@ def listen_print_loop(responses, stream, phonenum):
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
 
             stream.last_transcript_was_final = False
-
-# def speech2text(phonenum):
-#     # See http://g.co/cloud/speech/docs/languages
-#     # for a list of supported languages.
-#     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
-#     secondary_language1 = "en-US"
-#     secondary_language2 = "zh"
-#     global stop_signal
-
-#     client = speech.SpeechClient()
-#     config = speech.RecognitionConfig(
-#         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-#         sample_rate_hertz=RATE,
-#         speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
-#         language_code=primary_language,
-#         alternative_language_codes=[secondary_language1, secondary_language2],
-#         use_enhanced=True,
-#         # A model must be specified to use enhanced model.
-#         model="command_and_search"
-#     )
-
-#     streaming_config = speech.StreamingRecognitionConfig(
-#         config=config, interim_results=True
-#     )
-
-#     # text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢? 請輸入數字選擇故障類別: 1. 前臺電腦故障 2. 前臺電腦週邊設備故障 3. 後臺電腦故障 4. 後臺電腦週邊設備故障 5. 手持, 顯示幕或其他故障", "yue-Hant-HK")
-#     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
-
-#     with MicrophoneStream(RATE, CHUNK) as stream:
-#         audio_generator = stream.generator()
-#         requests = (
-#             speech.StreamingRecognizeRequest(audio_content=content)
-#             for content in audio_generator
-#         )
-
-#         responses = client.streaming_recognize(streaming_config, requests)
-
-#         # Now, put the transcription responses to use.
-#         listen_print_loop(responses, phonenum)
-
 
 
 def speech2text(phonenum):
