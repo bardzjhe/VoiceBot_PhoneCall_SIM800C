@@ -339,7 +339,7 @@ def speech2text(phonenum):
         sample_rate_hertz=SAMPLE_RATE,
         speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
         language_code=primary_language,
-        alternative_language_codes=[secondary_language1, secondary_language2],
+        # alternative_language_codes=[secondary_language1, secondary_language2],
         max_alternatives=1,
     )
 
@@ -433,7 +433,8 @@ class PlayMP3():
         self._filename = name
 
     def play(self):
-        mixer.init()
+        mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
+        # mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
         mixer.music.load(self._filename)
         # print("* recording")
         mixer.music.play()
