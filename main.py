@@ -393,7 +393,7 @@ class PlayMP3():
 
     def play(self):
         mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
-        # mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
+        # mixer.init()
         mixer.music.load(self._filename)
         # print("* recording")
         mixer.music.play()
@@ -530,7 +530,6 @@ def run_sim800c():
                     print("\ndialed")
                     
                     executor.submit(speech2text, phonenum)
-                    # executor.submit(speech2text, phonenum)
 
 def main():
     print("   _____ _____ __  __  ___   ___   ___   _____   ____   ____ _______ ")
