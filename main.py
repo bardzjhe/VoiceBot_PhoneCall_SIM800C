@@ -271,11 +271,11 @@ def listen_print_loop(responses, stream, phonenum):
 
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
-            if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                sys.stdout.write(YELLOW)
-                sys.stdout.write("Exiting...\n")
-                stream.closed = True
-                break
+            # if re.search(r"\b(exit|quit)\b", transcript, re.I):
+            #     sys.stdout.write(YELLOW)
+            #     sys.stdout.write("Exiting...\n")
+            #     stream.closed = True
+            #     break
 
             # temporary test funciton
             stream.closed = True
@@ -307,14 +307,14 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=True
     )
-    
-    text2speech("請問有咩可以幫你?", "yue-Hant-HK")
+
+    text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢?", "yue-Hant-HK")
     
     while True:
         mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
         print(mic_manager.chunk_size)
         sys.stdout.write(YELLOW)
-        sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
+        sys.stdout.write('\nListening....\n\n')
         sys.stdout.write("End (ms)       Transcript Results/Status\n")
         sys.stdout.write("=====================================================\n")
 
