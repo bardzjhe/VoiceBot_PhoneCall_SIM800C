@@ -210,7 +210,6 @@ def listen_print_loop(responses, stream, phonenum):
     """
 
     for response in responses:
-
         if get_current_time() - stream.start_time > STREAMING_LIMIT:
             stream.start_time = get_current_time()
             break
@@ -222,7 +221,7 @@ def listen_print_loop(responses, stream, phonenum):
 
         if not result.alternatives:
             continue
-
+        
         transcript = result.alternatives[0].transcript
 
         result_seconds = 0
@@ -278,13 +277,16 @@ def listen_print_loop(responses, stream, phonenum):
                 stream.closed = True
                 break
 
+            # temporary test funciton
+            stream.closed = True
+            break
+
         else:
             sys.stdout.write(RED)
             sys.stdout.write("\033[K")
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
 
             stream.last_transcript_was_final = False
-
 
 def speech2text(phonenum):
     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
@@ -305,50 +307,49 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=True
     )
-
-    mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
-    print(mic_manager.chunk_size)
-    sys.stdout.write(YELLOW)
-    sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
-    sys.stdout.write("End (ms)       Transcript Results/Status\n")
-    sys.stdout.write("=====================================================\n")
-
+    
     text2speech("請問有咩可以幫你?", "yue-Hant-HK")
+    
+    while True:
+        mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+        print(mic_manager.chunk_size)
+        sys.stdout.write(YELLOW)
+        sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
+        sys.stdout.write("End (ms)       Transcript Results/Status\n")
+        sys.stdout.write("=====================================================\n")
 
-    with mic_manager as stream:
+        with mic_manager as stream:
 
-        while not stream.closed:
-            sys.stdout.write(YELLOW)
-            sys.stdout.write(
-                "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
-            )
+            while not stream.closed:
+                sys.stdout.write(YELLOW)
+                sys.stdout.write(
+                    "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
+                )
 
-            stream.audio_input = []
-            audio_generator = stream.generator()
+                stream.audio_input = []
+                audio_generator = stream.generator()
 
-            requests = (
-                speech.StreamingRecognizeRequest(audio_content=content)
-                for content in audio_generator
-            )
+                requests = (
+                    speech.StreamingRecognizeRequest(audio_content=content)
+                    for content in audio_generator
+                )
 
-            responses = client.streaming_recognize(streaming_config, requests)
+                responses = client.streaming_recognize(streaming_config, requests)
 
-            # Now, put the transcription responses to use.
-            listen_print_loop(responses, stream, phonenum)
+                # Now, put the transcription responses to use.
+                listen_print_loop(responses, stream, phonenum)
 
-            if stream.result_end_time > 0:
-                stream.final_request_end_time = stream.is_final_end_time
-            stream.result_end_time = 0
-            stream.last_audio_input = []
-            stream.last_audio_input = stream.audio_input
-            stream.audio_input = []
-            stream.restart_counter = stream.restart_counter + 1
+                if stream.result_end_time > 0:
+                    stream.final_request_end_time = stream.is_final_end_time
+                stream.result_end_time = 0
+                stream.last_audio_input = []
+                stream.last_audio_input = stream.audio_input
+                stream.audio_input = []
+                stream.restart_counter = stream.restart_counter + 1
 
-            if not stream.last_transcript_was_final:
-                sys.stdout.write("\n")
-            stream.new_stream = True
-
-
+                if not stream.last_transcript_was_final:
+                    sys.stdout.write("\n")
+                stream.new_stream = True
 
 def text2speech(text, language_code):
     synthesis_input = texttospeech.SynthesisInput(text=text)
@@ -545,6 +546,7 @@ def main():
     # uncomment to test without phone
     # it is also used in altspace
     speech2text(config_phoneNumber)
+    # speech2text(config_phoneNumber)
 
     print("Done")
     os._exit(1)
