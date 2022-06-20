@@ -12,7 +12,8 @@ In order to use Python Client for Cloud Text-to-Speech API, you ought to go thro
 
 After that, you can do
 
-<pre><code> from google.cloud import texttospeech
+<pre><code>from google.cloud import texttospeech
+from google.cloud import speech
 </code></pre>
 
 ### Installing
@@ -27,11 +28,11 @@ Install other packages if needed.
 
 ### NLP-related features
 
-Apart from calling function, it provides basic MP3 playing function, and audio recording. As for advanced NLP-related features, which include
+Apart from calling function, it provides basic MP3 playing function, and audio recording. As for advanced NLP-related features that enable it to interact with the users, it includes
 
->1. Convert a text file to mp3/wav format utilizing Google Cloud API, and this file would be played later. 
->2. Transcribe streaming audio from a microphone. 
->3. Languages should preferably include English, Cantonese and Mandarin. 
+>1. Convert a text file to mp3/wav format utilizing GCP API, and vice versa, by transcribing streaming audio from a microphone.
+>2. Integrate with the interface provided by the supervisor, and make it able to better identify some specific terms from the user's voice. 
+>3. Languages should preferably include English, Cantonese and Mandarin. When the user speaks one kind of language, it should reply in the same language. 
 
 Those are achieved with the help of [GCP API](https://cloud.google.com), including texttospeech and speech.  
 
