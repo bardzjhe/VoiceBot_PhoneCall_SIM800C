@@ -2,4 +2,5 @@ pyserial==3.5
 google-cloud-speech==2.14.1
 google-cloud-texttospeech==2.11.1
 pygame==2.1.2
+pywin32==304
 PyAudio==0.2.11
