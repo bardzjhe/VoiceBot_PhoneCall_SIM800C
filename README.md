@@ -31,7 +31,7 @@ Install other packages if needed.
 Apart from calling function, it provides basic MP3 playing function, and audio recording. As for advanced NLP-related features that enable it to interact with the users, it includes
 
 >1. Convert a text file to mp3/wav format utilizing GCP API, and vice versa, by transcribing streaming audio from a microphone.
->2. Integrate with the interface provided by the supervisor, and make it able to better identify some specific terms from the user's voice. 
+>2. Integrate with the ready-made interface, and make it able to better identify some specific terms from the user's voice, irrespective of the language. 
 >3. Languages should preferably include English, Cantonese and Mandarin. When the user speaks one kind of language, it should reply in the same language. 
 
 Those are achieved with the help of [GCP API](https://cloud.google.com), including texttospeech and speech.  
