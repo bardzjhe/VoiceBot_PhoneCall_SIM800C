@@ -289,6 +289,7 @@ def listen_print_loop(responses, stream, phonenum):
             stream.last_transcript_was_final = False
 
 def speech2text(phonenum):
+    global stop_signal
     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
     secondary_language1 = "en-US"
     secondary_language2 = "zh"
@@ -311,45 +312,49 @@ def speech2text(phonenum):
     text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢?", "yue-Hant-HK")
     
     while True:
-        mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
-        print(mic_manager.chunk_size)
-        sys.stdout.write(YELLOW)
-        sys.stdout.write('\nListening....\n\n')
-        sys.stdout.write("End (ms)       Transcript Results/Status\n")
-        sys.stdout.write("=====================================================\n")
+        if stop_signal == False:
+            mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+            print(mic_manager.chunk_size)
+            sys.stdout.write(YELLOW)
+            sys.stdout.write('\nListening....\n\n')
+            sys.stdout.write("End (ms)       Transcript Results/Status\n")
+            sys.stdout.write("=====================================================\n")
 
-        with mic_manager as stream:
+            with mic_manager as stream:
 
-            while not stream.closed:
-                sys.stdout.write(YELLOW)
-                sys.stdout.write(
-                    "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
-                )
+                while not stream.closed:
+                    sys.stdout.write(YELLOW)
+                    sys.stdout.write(
+                        "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
+                    )
 
-                stream.audio_input = []
-                audio_generator = stream.generator()
+                    stream.audio_input = []
+                    audio_generator = stream.generator()
 
-                requests = (
-                    speech.StreamingRecognizeRequest(audio_content=content)
-                    for content in audio_generator
-                )
+                    requests = (
+                        speech.StreamingRecognizeRequest(audio_content=content)
+                        for content in audio_generator
+                    )
 
-                responses = client.streaming_recognize(streaming_config, requests)
+                    responses = client.streaming_recognize(streaming_config, requests)
 
-                # Now, put the transcription responses to use.
-                listen_print_loop(responses, stream, phonenum)
+                    # Now, put the transcription responses to use.
+                    listen_print_loop(responses, stream, phonenum)
 
-                if stream.result_end_time > 0:
-                    stream.final_request_end_time = stream.is_final_end_time
-                stream.result_end_time = 0
-                stream.last_audio_input = []
-                stream.last_audio_input = stream.audio_input
-                stream.audio_input = []
-                stream.restart_counter = stream.restart_counter + 1
+                    if stream.result_end_time > 0:
+                        stream.final_request_end_time = stream.is_final_end_time
+                    stream.result_end_time = 0
+                    stream.last_audio_input = []
+                    stream.last_audio_input = stream.audio_input
+                    stream.audio_input = []
+                    stream.restart_counter = stream.restart_counter + 1
 
-                if not stream.last_transcript_was_final:
-                    sys.stdout.write("\n")
-                stream.new_stream = True
+                    if not stream.last_transcript_was_final:
+                        sys.stdout.write("\n")
+                    stream.new_stream = True
+        else:
+            stop_signal = False
+            break
 
 def text2speech(text, language_code):
     synthesis_input = texttospeech.SynthesisInput(text=text)
@@ -393,8 +398,8 @@ class PlayMP3():
         self._filename = name
 
     def play(self):
-        mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
-        # mixer.init()
+        # mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
+        mixer.init()
         mixer.music.load(self._filename)
         # print("* recording")
         mixer.music.play()
@@ -541,11 +546,11 @@ def main():
     print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|     Ver0.1 beta")
     print("")
 
-    # run_sim800c()
+    run_sim800c()
 
     # uncomment to test without phone
     # it is also used in altspace
-    speech2text(config_phoneNumber)
+    # speech2text(config_phoneNumber)
     # speech2text(config_phoneNumber)
 
     print("Done")
