@@ -10,6 +10,7 @@ import queue
 import serial
 import pyaudio
 import threading
+import multiprocessing
 import serial.tools.list_ports
 from pygame import mixer
 from concurrent.futures import ThreadPoolExecutor
@@ -41,7 +42,6 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.
 config_serialDeviceName = 'USB-SERIAL'
 config_phoneNumber = 51153639
 phonenum = ''
-stop_signal = False
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
 audio_temp_folder = 'audio_temp/'
@@ -289,7 +289,6 @@ def listen_print_loop(responses, stream, phonenum):
             stream.last_transcript_was_final = False
 
 def speech2text(phonenum):
-    global stop_signal
     primary_language = "yue-Hant-HK"  # a BCP-47 language tag
     secondary_language1 = "en-US"
     secondary_language2 = "zh"
@@ -312,49 +311,53 @@ def speech2text(phonenum):
     text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢?", "yue-Hant-HK")
     
     while True:
-        if stop_signal == False:
-            mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
-            print(mic_manager.chunk_size)
-            sys.stdout.write(YELLOW)
-            sys.stdout.write('\nListening....\n\n')
-            sys.stdout.write("End (ms)       Transcript Results/Status\n")
-            sys.stdout.write("=====================================================\n")
+        mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+        print(mic_manager.chunk_size)
+        sys.stdout.write(YELLOW)
+        sys.stdout.write('\nListening....\n\n')
+        sys.stdout.write("End (ms)       Transcript Results/Status\n")
+        sys.stdout.write("=====================================================\n")
 
-            with mic_manager as stream:
+        with mic_manager as stream:
 
-                while not stream.closed:
-                    sys.stdout.write(YELLOW)
-                    sys.stdout.write(
-                        "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
-                    )
+            while not stream.closed:
+                sys.stdout.write(YELLOW)
+                sys.stdout.write(
+                    "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
+                )
 
-                    stream.audio_input = []
-                    audio_generator = stream.generator()
+                stream.audio_input = []
+                audio_generator = stream.generator()
 
-                    requests = (
-                        speech.StreamingRecognizeRequest(audio_content=content)
-                        for content in audio_generator
-                    )
+                # print("test 1")
 
-                    responses = client.streaming_recognize(streaming_config, requests)
+                requests = (
+                    speech.StreamingRecognizeRequest(audio_content=content)
+                    for content in audio_generator
+                )
 
-                    # Now, put the transcription responses to use.
-                    listen_print_loop(responses, stream, phonenum)
+                # print("test 2")
 
-                    if stream.result_end_time > 0:
-                        stream.final_request_end_time = stream.is_final_end_time
-                    stream.result_end_time = 0
-                    stream.last_audio_input = []
-                    stream.last_audio_input = stream.audio_input
-                    stream.audio_input = []
-                    stream.restart_counter = stream.restart_counter + 1
+                responses = client.streaming_recognize(streaming_config, requests)
 
-                    if not stream.last_transcript_was_final:
-                        sys.stdout.write("\n")
-                    stream.new_stream = True
-        else:
-            stop_signal = False
-            break
+                # print("test 3")
+
+                # Now, put the transcription responses to use.
+                listen_print_loop(responses, stream, phonenum)
+
+                # print("test 4")
+
+                if stream.result_end_time > 0:
+                    stream.final_request_end_time = stream.is_final_end_time
+                stream.result_end_time = 0
+                stream.last_audio_input = []
+                stream.last_audio_input = stream.audio_input
+                stream.audio_input = []
+                stream.restart_counter = stream.restart_counter + 1
+
+                if not stream.last_transcript_was_final:
+                    sys.stdout.write("\n")
+                stream.new_stream = True
 
 def text2speech(text, language_code):
     synthesis_input = texttospeech.SynthesisInput(text=text)
@@ -414,7 +417,7 @@ class PlayMP3():
             os.remove(os.path.join(audio_temp_folder, f))
 
 def run_sim800c():
-    global phonenum, stop_signal
+    global phonenum
     language_code = "yue-Hant-HK"
     port_list = list(serial.tools.list_ports.comports())
     dialed = False
@@ -514,7 +517,8 @@ def run_sim800c():
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
                 dialed = False
-                stop_signal = True
+                process.terminate()
+                print("process terminated!")
                 # Stop audio recording after the end of the call
                 # executor.submit(audio_thread.stop)
 
@@ -534,8 +538,9 @@ def run_sim800c():
                     time.sleep(10)
                     dialed = True
                     print("\ndialed")
-                    
-                    executor.submit(speech2text, phonenum)
+                    process = multiprocessing.Process(target=speech2text, args=(phonenum,))
+                    process.start()
+                    # executor.submit(speech2text, phonenum)
 
 def main():
     print("   _____ _____ __  __  ___   ___   ___   _____   ____   ____ _______ ")
@@ -543,7 +548,7 @@ def main():
     print(" | (___   | | | \  / | (_) | | | | | | | |      | |_) | |  | | | |   ")
     print("  \___ \  | | | |\/| |> _ <| | | | | | | |      |  _ <| |  | | | |   ")
     print("  ____) |_| |_| |  | | (_) | |_| | |_| | |____  | |_) | |__| | | |   ")
-    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|     Ver0.1 beta")
+    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|     Ver0.2 beta")
     print("")
 
     run_sim800c()
