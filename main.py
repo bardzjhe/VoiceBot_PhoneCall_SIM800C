@@ -329,23 +329,15 @@ def speech2text(phonenum):
                 stream.audio_input = []
                 audio_generator = stream.generator()
 
-                # print("test 1")
-
                 requests = (
                     speech.StreamingRecognizeRequest(audio_content=content)
                     for content in audio_generator
                 )
 
-                # print("test 2")
-
                 responses = client.streaming_recognize(streaming_config, requests)
-
-                # print("test 3")
 
                 # Now, put the transcription responses to use.
                 listen_print_loop(responses, stream, phonenum)
-
-                # print("test 4")
 
                 if stream.result_end_time > 0:
                     stream.final_request_end_time = stream.is_final_end_time
@@ -366,8 +358,6 @@ def text2speech(text, language_code):
         language_code=language_code, 
         ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
     )
-
-    # print(client.list_voices())
 
     audio_config = texttospeech.AudioConfig(
         audio_encoding= texttospeech.AudioEncoding.MP3
@@ -404,7 +394,6 @@ class PlayMP3():
         # mixer.init(devicename = 'Line 1 (Virtual Audio Cable)')
         mixer.init()
         mixer.music.load(self._filename)
-        # print("* recording")
         mixer.music.play()
         print("The mp3 should be played")
         while mixer.music.get_busy():  # wait for music to finish playing
@@ -422,27 +411,18 @@ def run_sim800c():
     port_list = list(serial.tools.list_ports.comports())
     dialed = False
 
-    # print("Debug info\nA works")
     print("The port number is: " + str(len(port_list)))
     if len(port_list) == 0:
         print("\nno port can be used :(")
         exit(0)
     else:
-        # print('\nB works')
-# print all available port name
-#         for i in port_list:
-#             print(i)
-
-    # find the correct port for data transmission
+        # find the correct port for data transmission
         for i in port_list:
             if str(i).find(config_serialDeviceName) != -1:
                 s = serial.Serial(i.device, 115200, timeout=0)
-        #s = serial.Serial(port_list[0].device, 115200, timeout=0.5)
-        # print('\nC works')
+
         sio = io.TextIOWrapper(io.BufferedRWPair(s, s))
 
-        # print("\nD works")
-        # sio.write(f'AT+DDET=1\nATS0=2\nATE1\nAT+COLP=1\nATD{str(phonenum)};\n')
         sio.write(f'AT+DDET=1\nATS0=2\nATE1\nAT+COLP=1\nAT+CLIP=1\n')
         ''' 
         AT+DDET=1: enable DTMF detection
@@ -459,8 +439,7 @@ def run_sim800c():
         '''
 
         sio.flush()
-        # print("\nE works")
-        # print("Calling (If it cannot work for long, please use XCOM V2.0 to check)....")
+
         print("Waiting for call (If it cannot work for long, please use XCOM V2.0 to check)....")
         while 1:
             # print(sio.readlines()) it leads to a big problem
@@ -469,9 +448,6 @@ def run_sim800c():
             except Exception:
                 print("\nError occurs accidentally, check the port or other devices :(")
                 exit()
-
-            # Detect status 
-            # print(x)
 
             # Dailed
             if x.find('+COLP: \"') != -1:
@@ -517,10 +493,8 @@ def run_sim800c():
             if x.find('NO CARRIER') != -1:
                 print("\nRing off")
                 dialed = False
-                process.terminate()
-                print("process terminated!")
-                # Stop audio recording after the end of the call
-                # executor.submit(audio_thread.stop)
+                process.terminate() # terminate the running process
+                print("Process terminated!")
 
             if (x.find('BUSY') != -1) | (x.find('NO ANSWER') != -1):
                 print("\nHe/She hangs up")
@@ -534,12 +508,12 @@ def run_sim800c():
                 if (x.find('+CLIP: "') != -1):
                     phonenum = int(x[x.find('+CLIP: "')+8:x.find('+CLIP: "')+16])
                     print(str(phonenum) + " called in")
-                    sio.write('ATA\n')
+                    sio.write('ATA\n') # accept call
                     time.sleep(10)
                     dialed = True
                     print("\ndialed")
-                    process = multiprocessing.Process(target=speech2text, args=(phonenum,))
-                    process.start()
+                    process = multiprocessing.Process(target=speech2text, args=(phonenum,)) # create a new process to handle phone call
+                    process.start() # start process
                     # executor.submit(speech2text, phonenum)
 
 def main():
@@ -554,8 +528,6 @@ def main():
     run_sim800c()
 
     # uncomment to test without phone
-    # it is also used in altspace
-    # speech2text(config_phoneNumber)
     # speech2text(config_phoneNumber)
 
     print("Done")
