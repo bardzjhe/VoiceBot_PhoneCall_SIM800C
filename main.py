@@ -303,7 +303,7 @@ def speech2text(phonenum):
         sample_rate_hertz=SAMPLE_RATE,
         speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
         language_code=primary_language,
-        # alternative_language_codes=[secondary_language1, secondary_language2],
+        alternative_language_codes=[secondary_language1, secondary_language2],
         max_alternatives=1,
     )
 
