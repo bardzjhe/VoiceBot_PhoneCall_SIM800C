@@ -22,13 +22,13 @@ from configurator import getConfig
 
 
 # ==============for mute mic function================
-import win32api
-import win32gui
+# import win32api
+# import win32gui
 
-WM_APPCOMMAND = 0x319
-APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
+# WM_APPCOMMAND = 0x319
+# APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
 
-hwnd_active = win32gui.GetForegroundWindow()
+# hwnd_active = win32gui.GetForegroundWindow()
 # ===================================================
 
 import requests
@@ -248,7 +248,7 @@ def listen_print_loop(responses, stream, phonenum):
 
         if result.is_final:
             # mute mic
-            win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
+            # win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             sys.stdout.write(GREEN)
             sys.stdout.write("\033[K")
@@ -267,7 +267,7 @@ def listen_print_loop(responses, stream, phonenum):
                 text2speech("請問重有咩可以幫你?", result.language_code)
 
             # unmute mic
-            win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
+            # win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
@@ -303,7 +303,7 @@ def speech2text(phonenum):
         sample_rate_hertz=SAMPLE_RATE,
         speech_contexts=[speech.SpeechContext(phrases=["$ORDINAL"])],
         language_code=primary_language,
-        alternative_language_codes=[secondary_language1, secondary_language2],
+        # alternative_language_codes=[secondary_language1, secondary_language2],
         max_alternatives=1,
     )
 
