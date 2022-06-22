@@ -18,6 +18,7 @@ from google.cloud import texttospeech
 from google.cloud import speech
 from six.moves import queue
 from datetime import datetime
+from configurator import getConfig
 
 
 # ==============for mute mic function================
@@ -37,10 +38,12 @@ STREAMING_LIMIT = 240000  # 4 minutes
 SAMPLE_RATE = 8000
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
+settingFilePath = "SETTING.txt"
+setting = getConfig(settingFilePath)
+
 executor = ThreadPoolExecutor(max_workers=16)
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ambient-sum-352109-87d42557e70d.json' # plz modify the name if needed
-config_serialDeviceName = 'USB-SERIAL'
-config_phoneNumber = 51153639
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = setting["googleApplicationCredentials"]
+config_serialDeviceName = setting["serialDeviceName"]
 phonenum = ''
 client = texttospeech.TextToSpeechClient()
 speech_client = speech.SpeechClient()
@@ -526,9 +529,6 @@ def main():
     print("")
 
     run_sim800c()
-
-    # uncomment to test without phone
-    # speech2text(config_phoneNumber)
 
     print("Done")
     os._exit(1)

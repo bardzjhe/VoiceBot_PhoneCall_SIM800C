@@ -1,0 +1,2 @@
+serialDeviceName = USB-SERIAL
+googleApplicationCredentials = ambient-sum-352109-87d42557e70d.json
