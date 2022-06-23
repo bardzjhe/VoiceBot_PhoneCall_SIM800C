@@ -255,15 +255,7 @@ def listen_print_loop(responses, stream, phonenum):
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
 
-            # Exit recognition if any of the transcribed phrases could be
-            # one of our keywords.
-            # if re.search(r"\b(exit|quit)\b", transcript, re.I):
-            #     sys.stdout.write(YELLOW)
-            #     sys.stdout.write("Exiting...\n")
-            #     stream.closed = True
-            #     break
-
-            # temporary test funciton
+            # end stream
             stream.closed = True
             break
 
@@ -500,7 +492,6 @@ def run_sim800c():
                     print("\ndialed")
                     process = multiprocessing.Process(target=speech2text, args=(phonenum,)) # create a new process to handle phone call
                     process.start() # start process
-                    # executor.submit(speech2text, phonenum)
 
 def main():
     print("   _____ _____ __  __  ___   ___   ___   _____   ____   ____ _______ ")
