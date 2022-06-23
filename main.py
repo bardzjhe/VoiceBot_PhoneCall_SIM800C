@@ -20,17 +20,6 @@ from six.moves import queue
 from datetime import datetime
 from configurator import getConfig
 
-
-# ==============for mute mic function================
-# import win32api
-# import win32gui
-
-# WM_APPCOMMAND = 0x319
-# APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
-
-# hwnd_active = win32gui.GetForegroundWindow()
-# ===================================================
-
 import requests
 
 # Audio recording parameters
@@ -247,9 +236,6 @@ def listen_print_loop(responses, stream, phonenum):
         # line, so subsequent lines will overwrite them.
 
         if result.is_final:
-            # mute mic
-            # win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
-
             sys.stdout.write(GREEN)
             sys.stdout.write("\033[K")
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
@@ -265,9 +251,6 @@ def listen_print_loop(responses, stream, phonenum):
             else:
                 print("Reply: 請問重有咩可以幫你?")
                 text2speech("請問重有咩可以幫你?", result.language_code)
-
-            # unmute mic
-            # win32api.SendMessage(hwnd_active, WM_APPCOMMAND, None, APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
