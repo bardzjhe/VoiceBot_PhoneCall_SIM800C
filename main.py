@@ -266,10 +266,10 @@ def listen_print_loop(responses, stream, phonenum):
 
             stream.last_transcript_was_final = False
 
-def speech2text(phonenum):
-    primary_language = "yue-Hant-HK"  # a BCP-47 language tag
-    secondary_language1 = "en-US"
-    secondary_language2 = "zh"
+def speech2text(phonenum, primary_language):
+    # primary_language = "yue-Hant-HK"  # a BCP-47 language tag
+    # secondary_language1 = "en-US"
+    # secondary_language2 = "zh"
     """start bidirectional streaming from microphone input to speech API"""
 
     client = speech.SpeechClient()
@@ -285,8 +285,12 @@ def speech2text(phonenum):
     streaming_config = speech.StreamingRecognitionConfig(
         config=config, interim_results=True
     )
-
-    text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢?", "yue-Hant-HK")
+    if(primary_language == "yue-Hant-HK"):
+        text2speech("您好, 我係人工智能服務大使Kimia, 請問有咩可以幫到您呢?", "yue-Hant-HK")
+    elif(primary_language == "en-US"):
+        text2speech("Hello, I am AI emabassador Kimia, what can I help you?", "en-US")
+    else:
+        text2speech("您好, 我是人工智能服務大使Kimia, 請問有什麼可以幫您?", "zh")
     
     while True:
         mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
@@ -490,8 +494,31 @@ def run_sim800c():
                     time.sleep(10)
                     dialed = True
                     print("\ndialed")
-                    process = multiprocessing.Process(target=speech2text, args=(phonenum,)) # create a new process to handle phone call
-                    process.start() # start process
+                    # executor.submit(text2speech, "廣東話請按1;英文請按2;普通話請按3", "yue-Hant-HK")
+                    text2speech("廣東話請按1", "yue-Hant-HK")
+                    text2speech("English please press 2", "en-US")
+                    text2speech("普通話請按3", "zh")
+                    while 1:
+                        # print(sio.readlines()) it leads to a big problem
+                        try:
+                            x = "".join(sio.readlines())
+                        except Exception:
+                            print("\nError occurs accidentally, check the port or other devices :(")
+                            exit()
+
+                        if x.find('+DTMF: 1') != -1:
+                            process = multiprocessing.Process(target=speech2text, args=(phonenum, "yue-Hant-HK",)) # create a new process to handle phone call
+                            process.start() # start process
+                            break
+                        elif x.find('+DTMF: 2') != -1:
+                            process = multiprocessing.Process(target=speech2text, args=(phonenum, "en-US",)) # create a new process to handle phone call
+                            process.start() # start process
+                            break
+                        elif x.find('+DTMF: 3') != -1:
+                            process = multiprocessing.Process(target=speech2text, args=(phonenum,"zh",)) # create a new process to handle phone call
+                            process.start() # start process
+                            break
+
 
 def main():
     print("   _____ _____ __  __  ___   ___   ___   _____   ____   ____ _______ ")
@@ -499,7 +526,7 @@ def main():
     print(" | (___   | | | \  / | (_) | | | | | | | |      | |_) | |  | | | |   ")
     print("  \___ \  | | | |\/| |> _ <| | | | | | | |      |  _ <| |  | | | |   ")
     print("  ____) |_| |_| |  | | (_) | |_| | |_| | |____  | |_) | |__| | | |   ")
-    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|     Ver0.2 beta")
+    print(" |_____/|_____|_|  |_|\___/ \___/ \___/ \_____| |____/ \____/  |_|     Ver0.3 beta")
     print("")
 
     run_sim800c()
