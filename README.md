@@ -49,8 +49,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [google.oauth2.service_account module](https://google-auth.readthedocs.io/en/master/reference/google.oauth2.service_account.html)
 
-[YouTube 1](https://www.youtube.com/watch?v=ZXnPMzmrmIY)
+<!-- [YouTube 1](https://www.youtube.com/watch?v=ZXnPMzmrmIY) -->
 
-[YouTube 2](https://www.youtube.com/watch?v=lKra6E_tp5U&list=PL3JVwFmb_BnQlc47zGPQFzrKeyXiolAoS)
+<!-- [YouTube 2](https://www.youtube.com/watch?v=lKra6E_tp5U&list=PL3JVwFmb_BnQlc47zGPQFzrKeyXiolAoS) -->
 
 As for the issue of testing ATK-SIM800C GSM/GPRS Module, please use XCOM V2.0 and, if necessary, RTFM :satisfied:
